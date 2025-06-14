@@ -28,15 +28,29 @@ class SchoolController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
+        $imagePath = '';
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
-            $validated['logo'] = $logoPath;
+            $file = $request->file('logo');
+            $destination = public_path('assets/school/');
+            if (!file_exists($destination)) {
+                mkdir($destination, 0777, true);
+            }
+            $imageName = time() . '_' . $file->getClientOriginalName();
+            $file->move($destination, $imageName);
+            $imagePath = 'assets/school/' . $imageName;
         }
 
-        School::create($validated);
+        School::create([
+            'name' => $validated['name'],
+            'address' => $validated['address'],
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'logo' => $imagePath,
+        ]);
 
         return redirect()->route('schools.index')->with('success', 'School created successfully!');
     }
+
 
     public function show(School $school)
     {
@@ -59,12 +73,30 @@ class SchoolController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
+        $imagePath = $school->logo; // keep old logo if not updating
         if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('logos', 'public');
-            $validated['logo'] = $logoPath;
+            $file = $request->file('logo');
+            $destination = public_path('assets/school/');
+            if (!file_exists($destination)) {
+                mkdir($destination, 0777, true);
+            }
+            $imageName = time() . '_' . $file->getClientOriginalName();
+            $file->move($destination, $imageName);
+            $imagePath = 'assets/school/' . $imageName;
+
+            // Optionally delete the old logo
+            if ($school->logo && file_exists(public_path($school->logo))) {
+                unlink(public_path($school->logo));
+            }
         }
 
-        $school->update($validated);
+        $school->update([
+            'name' => $validated['name'],
+            'address' => $validated['address'],
+            'phone' => $validated['phone'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'logo' => $imagePath,
+        ]);
 
         return redirect()->route('schools.index')->with('success', 'School updated successfully!');
     }

@@ -53,24 +53,52 @@ class ReportController extends Controller
             'sports_game' => 'required|string|max:2',
         ]);
 
+        // Add debugging to see what student_id is being received
+        \Log::info('Report creation attempt', [
+            'student_id' => $validated['student_id'],
+            'academic_year' => $validated['academic_year'],
+            'request_student_id' => $request->input('student_id')
+        ]);
+
+        // Get the student to verify
+        $student = Student::find($validated['student_id']);
+        if (!$student) {
+            return redirect()->back()->with('error', 'Selected student not found!');
+        }
+
+        \Log::info('Creating report for student', [
+            'student_name' => $student->name,
+            'student_id' => $student->id
+        ]);
+
         // Calculate GPA and create marks records
         $totalGradePoints = 0;
         $totalSubjects = 0;
 
         foreach ($validated['marks'] as $markData) {
             $examTypes = ['first_terminal', 'second_terminal', 'final_terminal', 'pre_board'];
-            
+
             foreach ($examTypes as $examType) {
                 $theoryKey = $examType . '_th';
                 $practicalKey = $examType . '_pr';
-                
+
                 if (isset($markData[$theoryKey]) || isset($markData[$practicalKey])) {
                     $theoryMarks = $markData[$theoryKey] ?? 0;
                     $practicalMarks = $markData[$practicalKey] ?? 0;
                     $totalMarks = $theoryMarks + $practicalMarks;
-                    
+
                     $grade = GradeSystem::getGradeByMarks($totalMarks);
-                    
+
+                    // Handle case where no grade is found
+                    if (!$grade) {
+                        // Create a default grade for marks that don't fit any grade range
+                        $letterGrade = 'NG'; // No Grade
+                        $gradePoint = 0;
+                    } else {
+                        $letterGrade = $grade->letter_grade;
+                        $gradePoint = $grade->grade_point;
+                    }
+
                     StudentMark::create([
                         'student_id' => $validated['student_id'],
                         'subject_id' => $markData['subject_id'],
@@ -78,13 +106,13 @@ class ReportController extends Controller
                         'theory_marks' => $theoryMarks,
                         'practical_marks' => $practicalMarks,
                         'total_marks' => $totalMarks,
-                        'letter_grade' => $grade->letter_grade,
-                        'grade_point' => $grade->grade_point,
+                        'letter_grade' => $letterGrade,
+                        'grade_point' => $gradePoint,
                         'academic_year' => $validated['academic_year']
                     ]);
-                    
+
                     if ($examType === 'final_terminal') {
-                        $totalGradePoints += $grade->grade_point;
+                        $totalGradePoints += $gradePoint;
                         $totalSubjects++;
                     }
                 }
@@ -93,14 +121,17 @@ class ReportController extends Controller
 
         $finalGpa = $totalSubjects > 0 ? round($totalGradePoints / $totalSubjects, 2) : 0;
         $finalGrade = GradeSystem::where('grade_point', '<=', $finalGpa)
-                                 ->orderBy('grade_point', 'desc')
-                                 ->first();
+            ->orderBy('grade_point', 'desc')
+            ->first();
+
+        // Ensure we have a valid final grade
+        $finalGradeLetter = $finalGrade ? $finalGrade->letter_grade : 'NG';
 
         StudentReport::create([
             'student_id' => $validated['student_id'],
             'academic_year' => $validated['academic_year'],
             'final_gpa' => $finalGpa,
-            'final_grade' => $finalGrade->letter_grade ?? 'NG',
+            'final_grade' => $finalGradeLetter,
             'attendance_days' => $validated['attendance_days'],
             'total_days' => $validated['total_days'],
             'remarks' => $validated['remarks'],
@@ -122,14 +153,14 @@ class ReportController extends Controller
     {
         $report->load('student.school');
         $marks = StudentMark::where('student_id', $report->student_id)
-                           ->where('academic_year', $report->academic_year)
-                           ->with('subject')
-                           ->get()
-                           ->groupBy(['subject_id', 'exam_type']);
-        
+            ->where('academic_year', $report->academic_year)
+            ->with('subject')
+            ->get()
+            ->groupBy(['subject_id', 'exam_type']);
+
         $subjects = Subject::where('is_active', true)->get();
         $gradeSystem = GradeSystem::all();
-        
+
         return view('reports.show', compact('report', 'marks', 'subjects', 'gradeSystem'));
     }
 
@@ -137,16 +168,16 @@ class ReportController extends Controller
     {
         $report->load('student.school');
         $marks = StudentMark::where('student_id', $report->student_id)
-                           ->where('academic_year', $report->academic_year)
-                           ->with('subject')
-                           ->get()
-                           ->groupBy(['subject_id', 'exam_type']);
-        
+            ->where('academic_year', $report->academic_year)
+            ->with('subject')
+            ->get()
+            ->groupBy(['subject_id', 'exam_type']);
+
         $subjects = Subject::where('is_active', true)->get();
         $gradeSystem = GradeSystem::all();
-        
+
         $pdf = Pdf::loadView('reports.pdf', compact('report', 'marks', 'subjects', 'gradeSystem'));
-        
+
         return $pdf->download('report-' . $report->student->name . '-' . $report->academic_year . '.pdf');
     }
 }

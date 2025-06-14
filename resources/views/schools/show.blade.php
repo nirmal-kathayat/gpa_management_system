@@ -39,16 +39,16 @@
                     </div>
                     <div class="col-md-6">
                         @if($school->logo)
-                            <img src="{{ Storage::url($school->logo) }}" alt="School Logo" class="img-fluid" style="max-height: 200px;">
+                        <img src="{{ asset($school->logo) }}" alt="Logo" class="img-fluid" style="max-height: 200px;">
                         @else
-                            <div class="text-muted">No logo uploaded</div>
+                        <div class="text-muted">No logo uploaded</div>
                         @endif
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -102,7 +102,7 @@
                         </tbody>
                     </table>
                 </div>
-                
+
                 @if($school->students->count() > 10)
                 <div class="text-center">
                     <a href="{{ route('students.index') }}?school={{ $school->id }}" class="btn btn-outline-primary">
