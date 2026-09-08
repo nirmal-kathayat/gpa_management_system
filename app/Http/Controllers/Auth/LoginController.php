@@ -43,7 +43,7 @@ class LoginController extends Controller
     protected function validateLogin(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email',
+            'username' => 'required|string',
             'password' => 'required|string',
         ]);
     }
@@ -64,10 +64,16 @@ class LoginController extends Controller
      */
     protected function credentials(Request $request)
     {
-        $credentials = $request->only('email', 'password');
-        $credentials['is_active'] = true; // Only allow active users to login
+        $login = $request->input('username');
 
-        return $credentials;
+        // The single sign-in field accepts either a username or an email address.
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        return [
+            $field => $login,
+            'password' => $request->input('password'),
+            'is_active' => true, // Only allow active users to login
+        ];
     }
 
     /**
@@ -87,7 +93,7 @@ class LoginController extends Controller
     protected function sendFailedLoginResponse(Request $request)
     {
         throw ValidationException::withMessages([
-            'email' => ['These credentials do not match our records.'],
+            'username' => ['These credentials do not match our records.'],
         ]);
     }
 
@@ -96,7 +102,7 @@ class LoginController extends Controller
      */
     public function username()
     {
-        return 'email';
+        return 'username';
     }
 
     /**

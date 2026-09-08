@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,10 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            GradeSystemSeeder::class,
-            SubjectSeeder::class,
-            UserSeeder::class,
-        ]);
+        User::updateOrCreate(
+            ['username' => 'admin'],
+            [
+                'name' => 'System Administrator',
+                'email' => 'admin@gpa-system.com',
+                'password' => Hash::make('Nirmal977@#'),
+                'role' => 'admin',
+                'is_active' => true,
+            ]
+        );
     }
 }
