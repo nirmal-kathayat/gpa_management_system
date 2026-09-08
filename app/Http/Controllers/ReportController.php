@@ -12,15 +12,34 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
+    /**
+     * A report belongs to a school through its student.
+     */
+    protected function authorizeReport(StudentReport $report): void
+    {
+        $this->authorizeSchool($report->student?->school_id);
+    }
+
+    /**
+     * Stops a form from being posted with another school's student id.
+     */
+    protected function authorizeStudent(int $studentId): void
+    {
+        $this->authorizeSchool(Student::findOrFail($studentId)->school_id);
+    }
+
     public function index()
     {
-        $reports = StudentReport::with('student')->paginate(10);
+        $reports = StudentReport::with('student')
+            ->whereIn('student_id', auth()->user()->getAccessibleStudents()->select('id'))
+            ->paginate(10);
+
         return view('reports.index', compact('reports'));
     }
 
     public function create()
     {
-        $students = Student::all();
+        $students = auth()->user()->getAccessibleStudents()->orderBy('name')->get();
         $subjects = Subject::where('is_active', true)->get();
         return view('reports.create', compact('students', 'subjects'));
     }
@@ -52,6 +71,8 @@ class ReportController extends Controller
             'social_conduct' => 'required|string|max:2',
             'sports_game' => 'required|string|max:2',
         ]);
+
+        $this->authorizeStudent((int) $validated['student_id']);
 
         // Calculate GPA and create marks records
         $totalGradePoints = 0;
@@ -195,6 +216,8 @@ class ReportController extends Controller
 
     public function show(StudentReport $report)
     {
+        $this->authorizeReport($report);
+
         $report->load('student.school');
         $marks = StudentMark::where('student_id', $report->student_id)
             ->where('academic_year', $report->academic_year)
@@ -210,7 +233,9 @@ class ReportController extends Controller
 
     public function edit(StudentReport $report)
     {
-        $students = Student::all();
+        $this->authorizeReport($report);
+
+        $students = auth()->user()->getAccessibleStudents()->orderBy('name')->get();
         $subjects = Subject::where('is_active', true)->get();
 
         $marks = StudentMark::where('student_id', $report->student_id)
@@ -230,6 +255,8 @@ class ReportController extends Controller
 
     public function update(Request $request, StudentReport $report)
     {
+        $this->authorizeReport($report);
+
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'academic_year' => 'required|string',
@@ -255,6 +282,8 @@ class ReportController extends Controller
             'social_conduct' => 'required|string|max:2',
             'sports_game' => 'required|string|max:2',
         ]);
+
+        $this->authorizeStudent((int) $validated['student_id']);
 
         try {
             StudentMark::where('student_id', $report->student_id)
@@ -407,6 +436,8 @@ class ReportController extends Controller
 
     public function downloadPdf(StudentReport $report)
     {
+        $this->authorizeReport($report);
+
         $report->load('student.school');
         $marks = StudentMark::where('student_id', $report->student_id)
             ->where('academic_year', $report->academic_year)
@@ -424,6 +455,8 @@ class ReportController extends Controller
 
     public function destroy(StudentReport $report)
     {
+        $this->authorizeReport($report);
+
         try {
             if (!auth()->user()->isAdmin()) {
                 return redirect()->route('reports.index')->with('error', 'You do not have permission to delete reports.');

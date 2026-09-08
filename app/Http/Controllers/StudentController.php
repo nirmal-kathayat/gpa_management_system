@@ -3,20 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
-use App\Models\School;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
     public function index()
     {
-        $students = Student::with('school')->paginate(10);
+        $students = auth()->user()->getAccessibleStudents()
+            ->with('school')
+            ->paginate(10);
+
         return view('students.index', compact('students'));
     }
 
     public function create()
     {
-        $schools = School::all();
+        $schools = $this->selectableSchools();
         return view('students.create', compact('schools'));
     }
 
@@ -35,6 +37,8 @@ class StudentController extends Controller
             'school_id' => 'required|exists:schools,id'
         ]);
 
+        $this->authorizeSchool((int) $validated['school_id']);
+
         Student::create($validated);
 
         return redirect()->route('students.index')->with('success', 'Student created successfully!');
@@ -42,18 +46,24 @@ class StudentController extends Controller
 
     public function show(Student $student)
     {
+        $this->authorizeSchool($student->school_id);
+
         $student->load('school', 'marks.subject', 'reports');
         return view('students.show', compact('student'));
     }
 
     public function edit(Student $student)
     {
-        $schools = School::all();
+        $this->authorizeSchool($student->school_id);
+
+        $schools = $this->selectableSchools();
         return view('students.edit', compact('student', 'schools'));
     }
 
     public function update(Request $request, Student $student)
     {
+        $this->authorizeSchool($student->school_id);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'class' => 'required|string|max:50',
@@ -67,6 +77,9 @@ class StudentController extends Controller
             'school_id' => 'required|exists:schools,id'
         ]);
 
+        // Also blocks moving a student into a school the user cannot manage.
+        $this->authorizeSchool((int) $validated['school_id']);
+
         $student->update($validated);
 
         return redirect()->route('students.index')->with('success', 'Student updated successfully!');
@@ -74,6 +87,8 @@ class StudentController extends Controller
 
     public function destroy(Student $student)
     {
+        $this->authorizeSchool($student->school_id);
+
         $student->delete();
         return redirect()->route('students.index')->with('success', 'Student deleted successfully!');
     }

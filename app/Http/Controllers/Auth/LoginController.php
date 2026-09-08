@@ -5,11 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
     protected $redirectTo = '/dashboard';
+
+    /**
+     * Failed attempts allowed per username + IP before the form locks out.
+     */
+    protected const MAX_ATTEMPTS = 5;
+    protected const DECAY_SECONDS = 60;
 
     public function __construct()
     {
@@ -27,14 +35,45 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
+        $this->ensureIsNotRateLimited($request);
 
         if ($this->attemptLogin($request)) {
+            RateLimiter::clear($this->throttleKey($request));
+
+            // Guards against session fixation: the pre-login id is discarded.
             $request->session()->regenerate();
 
             return $this->authenticated($request, Auth::user());
         }
 
+        RateLimiter::hit($this->throttleKey($request), self::DECAY_SECONDS);
+
         return $this->sendFailedLoginResponse($request);
+    }
+
+    /**
+     * Per username + IP, so one attacker cannot lock every account out and a
+     * botnet cannot spread a single account's guesses across many addresses.
+     */
+    protected function throttleKey(Request $request): string
+    {
+        return 'login|' . Str::transliterate(Str::lower((string) $request->input('username'))) . '|' . $request->ip();
+    }
+
+    protected function ensureIsNotRateLimited(Request $request): void
+    {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey($request), self::MAX_ATTEMPTS)) {
+            return;
+        }
+
+        $seconds = RateLimiter::availableIn($this->throttleKey($request));
+
+        throw ValidationException::withMessages([
+            'username' => trans('auth.throttle', [
+                'seconds' => $seconds,
+                'minutes' => ceil($seconds / 60),
+            ]),
+        ]);
     }
 
     /**
@@ -111,6 +150,7 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
+
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
