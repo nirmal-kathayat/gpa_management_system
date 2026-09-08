@@ -4,479 +4,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPA Conversion System</title>
+    <title>@yield('title', 'GPA Management System')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            transition: all 0.3s;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .sidebar.collapsed {
-            width: 70px;
-        }
-
-        .sidebar-header {
-            padding: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-
-        .sidebar-brand {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-brand i {
-            margin-right: 0.5rem;
-        }
-
-        .sidebar.collapsed .sidebar-brand span {
-            display: none;
-        }
-
-        .sidebar-nav {
-            padding: 0;
-            margin: 0;
-            list-style: none;
-        }
-
-        .nav-item {
-            margin: 0;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.3s;
-            border: none;
-            background: none;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .nav-link.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-right: 3px solid white;
-        }
-
-        .nav-link i {
-            width: 20px;
-            margin-right: 0.75rem;
-            text-align: center;
-        }
-
-        .sidebar.collapsed .nav-link span {
-            display: none;
-        }
-
-        .sidebar.collapsed .nav-link {
-            justify-content: center;
-            padding: 0.75rem;
-        }
-
-        .sidebar.collapsed .nav-link i {
-            margin-right: 0;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            transition: all 0.3s;
-            min-height: 100vh;
-        }
-
-        .main-content.expanded {
-            margin-left: 70px;
-        }
-
-        .top-navbar {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            padding: 0.75rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sidebar-toggle {
-            background: none;
-            border: none;
-            color: #667eea;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .user-dropdown {
-            position: relative;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            color: #333;
-            text-decoration: none;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            transition: background-color 0.3s;
-        }
-
-        .user-info:hover {
-            background-color: #f8f9fa;
-            color: #333;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            margin-right: 0.5rem;
-        }
-
-        .user-dropdown .dropdown-menu {
-            right: 0;
-            left: auto;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .report-card {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-        }
-
-        .report-table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .report-table th,
-        .report-table td {
-            border: 1px solid #000;
-            padding: 4px;
-            text-align: center;
-        }
-
-        .report-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        @media print {
-
-            .no-print,
-            .sidebar,
-            .top-navbar {
-                display: none !important;
-            }
-
-            .main-content {
-                margin-left: 0 !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .main-content.expanded {
-                margin-left: 0;
-            }
-        }
-
-        .badge {
-            font-size: 0.7rem;
-        }
-
-        .nav-section {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 1rem;
-        }
-
-        .sidebar.collapsed .nav-section {
-            display: none;
-        }
-    </style>
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    @stack('styles')
 </head>
 
 <body>
     @auth
-    <!-- Sidebar -->
-    <div class="sidebar no-print" id="sidebar">
+    @php
+        $navUser = auth()->user();
+
+        // Falls back to the section name so every page gets a correct topbar
+        // title without each view having to declare one.
+        $sectionTitles = [
+            'dashboard' => 'Dashboard',
+            'students.*' => 'Students',
+            'reports.*' => 'Report Cards',
+            'schools.*' => 'Schools',
+            'users.profile' => 'My Profile',
+            'users.*' => 'Users',
+            'subjects.*' => 'Subjects',
+            'grades.*' => 'Grade Scale',
+            'bulk-import.*' => 'Bulk Import',
+        ];
+        $defaultTitle = 'GPA Management System';
+        foreach ($sectionTitles as $pattern => $title) {
+            if (request()->routeIs($pattern)) {
+                $defaultTitle = $title;
+                break;
+            }
+        }
+        // Only sections that have a page are listed, so the sidebar never links nowhere.
+        $navGroups = array_values(array_filter([
+            ['label' => null, 'items' => [
+                ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-gauge-high', 'label' => 'Dashboard'],
+            ]],
+            ['label' => 'MANAGEMENT', 'items' => array_values(array_filter([
+                $navUser->isAdmin() ? ['route' => 'schools.index', 'match' => 'schools.*', 'icon' => 'fa-school', 'label' => 'Schools'] : null,
+                $navUser->isAdmin() ? ['route' => 'users.index', 'match' => 'users.index', 'icon' => 'fa-users', 'label' => 'Users'] : null,
+                ['route' => 'students.index', 'match' => 'students.*', 'icon' => 'fa-user-graduate', 'label' => 'Students'],
+            ]))],
+            ['label' => 'ACADEMICS', 'items' => array_values(array_filter([
+                $navUser->isAdmin() ? ['route' => 'subjects.index', 'match' => 'subjects.*', 'icon' => 'fa-book', 'label' => 'Subjects'] : null,
+                $navUser->isAdmin() ? ['route' => 'grades.index', 'match' => 'grades.*', 'icon' => 'fa-award', 'label' => 'Grade Scale'] : null,
+                ['route' => 'reports.index', 'match' => 'reports.*', 'icon' => 'fa-file-lines', 'label' => 'Report Cards'],
+            ]))],
+            $navUser->isAdmin() ? ['label' => 'TOOLS', 'items' => [
+                ['route' => 'bulk-import.index', 'match' => 'bulk-import.*', 'icon' => 'fa-upload', 'label' => 'Bulk Import'],
+            ]] : null,
+        ]));
+    @endphp
+
+    <aside class="sidebar no-print" id="sidebar">
         <div class="sidebar-header">
             <a href="{{ route('dashboard') }}" class="sidebar-brand">
-                <i class="fas fa-graduation-cap"></i>
-                <span>GPA System</span>
+                <span class="brand-mark"><i class="fas fa-graduation-cap"></i></span>
+                <span class="brand-text">GPA Management<br>System</span>
             </a>
         </div>
 
-        <nav class="flex-grow-1">
-            <ul class="sidebar-nav">
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-
-                @if(auth()->user()->isAdmin())
-                <li class="nav-section">Management</li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('schools.*') ? 'active' : '' }}" href="{{ route('schools.index') }}">
-                        <i class="fas fa-school"></i>
-                        <span>Schools</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-                        <i class="fas fa-users"></i>
-                        <span>Users</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}" href="{{ route('subjects.index') }}">
-                        <i class="fas fa-book"></i>
-                        <span>Subjects</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}" href="{{ route('grades.index') }}">
-                        <i class="fas fa-award"></i>
-                        <span>Grades</span>
-                    </a>
-                </li>
-                @endif
-
-                <li class="nav-section">Academic</li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}" href="{{ route('students.index') }}">
-                        <i class="fas fa-user-graduate"></i>
-                        <span>Students</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Reports</span>
-                    </a>
-                </li>
-
-                @if(auth()->user()->isAdmin())
-                <li class="nav-section">Tools</li>
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('bulk-import.*') ? 'active' : '' }}" href="{{ route('bulk-import.index') }}">
-                        <i class="fas fa-upload"></i>
-                        <span>Bulk Import</span>
-                    </a>
-                </li>
-                @endif
-            </ul>
+        <nav class="sidebar-nav">
+            @foreach($navGroups as $group)
+                <div class="nav-group">
+                    @if($group['label'])
+                        <div class="nav-group-label">{{ $group['label'] }}</div>
+                    @endif
+                    @foreach($group['items'] as $item)
+                        <a class="nav-link {{ request()->routeIs($item['match']) ? 'active' : '' }}"
+                           href="{{ route($item['route']) }}">
+                            <i class="fas {{ $item['icon'] }}"></i>{{ $item['label'] }}
+                        </a>
+                    @endforeach
+                </div>
+            @endforeach
         </nav>
 
-        <div class="sidebar-footer">
-            <div class="text-center">
-                <small class="text-white-50">© 2024 GPA System</small>
-            </div>
-        </div>
-    </div>
+        <div class="sidebar-footer">GPA Management System</div>
+    </aside>
 
-    <!-- Main Content -->
     <div class="main-content" id="mainContent">
-        <!-- Top Navigation -->
-        <div class="top-navbar no-print">
-            <div class="d-flex align-items-center">
-                <button class="sidebar-toggle" id="sidebarToggle">
+        <header class="top-navbar no-print">
+            <div class="d-flex align-items-center gap-3">
+                <button class="icon-btn d-lg-none" id="sidebarToggle" aria-label="Toggle navigation">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h5 class="mb-0 ms-3">
-                    @if(request()->routeIs('dashboard'))
-                    Dashboard
-                    @elseif(request()->routeIs('students.*'))
-                    Student Management
-                    @elseif(request()->routeIs('reports.*'))
-                    Report Management
-                    @elseif(request()->routeIs('schools.*'))
-                    School Management
-                    @elseif(request()->routeIs('users.*'))
-                    User Management
-                    @elseif(request()->routeIs('subjects.*'))
-                    Subject Management
-                    @elseif(request()->routeIs('grades.*'))
-                    Grade System
-                    @elseif(request()->routeIs('bulk-import.*'))
-                    Bulk Import
-                    @else
-                    GPA System
-                    @endif
-                </h5>
+                <h1 class="page-title">@yield('page-title', $defaultTitle)</h1>
             </div>
 
-            <div class="user-dropdown dropdown">
-                <a class="user-info dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="d-none d-md-block">
-                        <div class="fw-semibold">{{ auth()->user()->name }}</div>
-                        <small class="text-muted">
-                            <span class="badge bg-{{ auth()->user()->role === 'admin' ? 'danger' : (auth()->user()->role === 'teacher' ? 'success' : 'info') }}">
-                                {{ ucfirst(auth()->user()->role) }}
-                            </span>
-                        </small>
-                    </div>
+            <div class="topbar-right">
+                <form class="topbar-search" action="{{ route('students.index') }}" method="GET" role="search">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input type="search" name="q" value="{{ request('q') }}"
+                           placeholder="Search students..." aria-label="Search students">
+                </form>
+
+                <a class="icon-btn" href="{{ route('users.profile') }}" aria-label="Profile settings">
+                    <i class="fas fa-gear"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="{{ route('users.profile') }}">
-                            <i class="fas fa-user me-2"></i>My Profile
-                        </a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li>
-                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="dropdown-item">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-            </div>
-        </div>
 
-        <!-- Page Content -->
-        <div class="container-fluid px-4">
-            @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show no-print" role="alert">
-                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="dropdown">
+                    <a class="user-chip" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="user-avatar"><i class="fas fa-user"></i></span>
+                        <span class="d-none d-md-block">
+                            <span class="user-name d-block">{{ $navUser->name }}</span>
+                            <span class="user-role d-block">{{ ucfirst($navUser->role) }}</span>
+                        </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('users.profile') }}">
+                                <i class="fas fa-user me-2"></i>My Profile
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-right-from-bracket me-2"></i>Log out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
+        </header>
+
+        <div class="page-body">
+            @if(session('success'))
+                <div class="flash flash-success no-print">
+                    <i class="fas fa-circle-check"></i>{{ session('success') }}
+                </div>
             @endif
 
             @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show no-print" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+                <div class="flash flash-error no-print">
+                    <i class="fas fa-circle-exclamation"></i>{{ session('error') }}
+                </div>
             @endif
 
             @yield('content')
         </div>
     </div>
     @else
-    <!-- Guest Layout (Login/Register pages) -->
-    <div class="container mt-4">
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        @endif
-
-        @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        @endif
-
+    <div class="container py-4">
         @yield('content')
     </div>
     @endauth
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const sidebarToggle = document.getElementById('sidebarToggle');
+            const toggle = document.getElementById('sidebarToggle');
+            if (!sidebar || !toggle) return;
 
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('collapsed');
-                    mainContent.classList.toggle('expanded');
+            toggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+                sidebar.classList.toggle('show');
+            });
 
-                    // Store sidebar state in localStorage
-                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-                });
-            }
-
-            // Restore sidebar state from localStorage
-            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (sidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('expanded');
-            }
-
-            // Mobile sidebar toggle
-            const mobileToggle = document.querySelector('[data-bs-toggle="offcanvas"]');
-            if (window.innerWidth <= 768) {
-                sidebar.classList.add('collapsed');
-                mainContent.classList.add('expanded');
-            }
-
-            // Handle window resize
-            window.addEventListener('resize', function() {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('show');
-                } else {
-                    sidebar.classList.remove('show');
-                }
+            document.addEventListener('click', function (event) {
+                if (window.innerWidth > 991) return;
+                if (sidebar.contains(event.target)) return;
+                sidebar.classList.remove('show');
             });
         });
     </script>
