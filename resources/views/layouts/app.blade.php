@@ -127,7 +127,8 @@
                 </a>
 
                 <div class="dropdown">
-                    <a class="user-chip" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="user-chip" href="#" role="button" data-bs-toggle="dropdown"
+                       data-bs-display="static" aria-expanded="false">
                         <span class="user-avatar"><i class="fas fa-user"></i></span>
                         <span class="d-none d-md-block">
                             <span class="user-name d-block">{{ $navUser->name }}</span>

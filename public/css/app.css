@@ -338,9 +338,43 @@ a:hover {
 
 /* ---------- Dropdown menu ---------- */
 
+/* Anchored to the topbar itself, so the menu hangs off its bottom border
+   instead of floating up beside the chip. Needs data-bs-display="static" on
+   the toggle so Bootstrap leaves the positioning to CSS. */
+.top-navbar .dropdown {
+    position: static;
+}
+
+.top-navbar .dropdown-menu {
+    /* 100% is the padding box, which stops at the border; +1px clears it. */
+    top: calc(100% + 1px);
+    right: 32px;
+    margin-top: 0;
+    left: auto;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: opacity .16s ease, transform .16s ease, visibility .16s;
+}
+
+.top-navbar .dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .top-navbar .dropdown-menu {
+        transition: none;
+    }
+}
+
 .dropdown-menu {
     min-width: 208px;
-    margin-top: 8px;
+    margin-top: 0;
     padding: 6px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
