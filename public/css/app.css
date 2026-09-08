@@ -21,6 +21,7 @@
     --warning-bg: #fdf3e4;
     --danger: #b3261e;
     --danger-bg: #faeaea;
+    --logo-navy: #0e2f66;
     --radius: 12px;
     --sidebar-w: 260px;
     --topbar-h: 72px;
@@ -65,11 +66,13 @@ a:hover {
     transition: transform .2s ease;
 }
 
+/* Same height as the topbar so the two bottom borders form one line. */
 .sidebar-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 24px 20px;
+    flex-shrink: 0;
+    height: var(--topbar-h);
+    padding: 0 24px;
     border-bottom: 1px solid var(--line);
 }
 
@@ -77,32 +80,27 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 10px;
-    color: var(--navy);
+    color: var(--logo-navy);
     text-decoration: none;
 }
 
 .sidebar-brand:hover {
-    color: var(--navy);
+    color: var(--logo-navy);
     text-decoration: none;
 }
 
-.brand-mark {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: var(--primary);
-    color: #fff;
-    font-size: 15px;
+.brand-logo {
+    display: block;
+    width: 36px;
+    height: 36px;
 }
 
-.brand-text {
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.25;
+/* Wordmark from the logo lockup, sized against the mark. */
+.brand-word {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -.01em;
 }
 
 .sidebar-nav {

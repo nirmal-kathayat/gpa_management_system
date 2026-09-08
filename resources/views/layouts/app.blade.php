@@ -62,9 +62,9 @@
 
     <aside class="sidebar no-print" id="sidebar">
         <div class="sidebar-header">
-            <a href="{{ route('dashboard') }}" class="sidebar-brand">
-                <span class="brand-mark"><i class="fas fa-graduation-cap"></i></span>
-                <span class="brand-text">GPA Management<br>System</span>
+            <a href="{{ route('dashboard') }}" class="sidebar-brand" aria-label="GPA Management System">
+                <img class="brand-logo" src="{{ asset('images/logo.svg') }}" alt="" width="36" height="36">
+                <span class="brand-word">GPA</span>
             </a>
         </div>
 
