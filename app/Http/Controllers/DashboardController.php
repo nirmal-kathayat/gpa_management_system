@@ -38,13 +38,21 @@ class DashboardController extends Controller
             ->get();
 
         // Monthly report creation stats
+        $driver = DB::connection()->getDriverName();
+        $monthExpr = $driver === 'sqlite'
+            ? "cast(strftime('%m', created_at) as integer)"
+            : 'MONTH(created_at)';
+        $yearExpr = $driver === 'sqlite'
+            ? "cast(strftime('%Y', created_at) as integer)"
+            : 'YEAR(created_at)';
+
         $monthlyStats = StudentReport::select(
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('YEAR(created_at) as year'),
+                DB::raw($monthExpr . ' as month'),
+                DB::raw($yearExpr . ' as year'),
                 DB::raw('count(*) as count')
             )
             ->where('created_at', '>=', now()->subMonths(12))
-            ->groupBy('year', 'month')
+            ->groupBy(DB::raw($yearExpr), DB::raw($monthExpr))
             ->orderBy('year', 'desc')
             ->orderBy('month', 'desc')
             ->get();

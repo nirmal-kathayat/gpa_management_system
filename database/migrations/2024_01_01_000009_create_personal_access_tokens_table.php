@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Sanctum ships its own personal_access_tokens migration; skip if it already ran.
+        if (Schema::hasTable('personal_access_tokens')) {
+            return;
+        }
+
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
             $table->morphs('tokenable');
