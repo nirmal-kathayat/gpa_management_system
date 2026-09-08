@@ -116,16 +116,6 @@
             </div>
 
             <div class="topbar-right">
-                <form class="topbar-search" action="{{ route('students.index') }}" method="GET" role="search">
-                    <i class="fas fa-magnifying-glass"></i>
-                    <input type="search" name="q" value="{{ request('q') }}"
-                           placeholder="Search students..." aria-label="Search students">
-                </form>
-
-                <a class="icon-btn" href="{{ route('users.profile') }}" aria-label="Profile settings">
-                    <i class="fas fa-gear"></i>
-                </a>
-
                 <div class="dropdown">
                     <a class="user-chip" href="#" role="button" data-bs-toggle="dropdown"
                        data-bs-display="static" aria-expanded="false">
