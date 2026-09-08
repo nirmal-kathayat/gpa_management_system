@@ -1,0 +1,429 @@
+/*
+ * Login page (resources/views/auth/login.blade.php).
+ * Plain stylesheet served from public/, no build step required.
+ *
+ * Colours and spacing are sampled from the Figma export, so keep them literal.
+ */
+
+:root {
+    --navy: #071b34;
+    --ink: #233044;
+    --muted: #5c6b82;
+    --muted-deep: #425269;
+    --placeholder: #8791a2;
+    --line: #e1e6ee;
+    --divider: #dde1ea;
+    --blue: #0a69fa;
+    --btn: #2866ac;
+    --btn-hover: #21598f;
+    --info-bg: #edf4fb;
+    --radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    color: var(--navy);
+    background: #fff;
+}
+
+.auth-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ---------- Left: photo + copy ---------- */
+
+.auth-visual {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 12.9vh 6vw 13.2vh 9.9vw;
+    /* Runs under the panel's rounded corners so the photo shows through them. */
+    margin-right: -32px;
+    padding-right: calc(6vw + 32px);
+    overflow: hidden;
+    /* Framed so the copy lands on the sky and the pale building facade,
+       which keeps the photo crisp - no washed-out overlay needed. */
+    background: #cfe0f0 url('/images/login-bg.jpg') 37% 10% / auto 140% no-repeat;
+}
+
+/* Light only where the copy sits (top-left); the building and plaza stay crisp. */
+.auth-visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(105% 68% at 4% 26%,
+            rgba(255, 255, 255, .92) 0%,
+            rgba(255, 255, 255, .80) 38%,
+            rgba(255, 255, 255, .30) 68%,
+            rgba(255, 255, 255, 0) 100%);
+}
+
+.auth-visual > * {
+    position: relative;
+    z-index: 1;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    /* The mockup insets the logo from the copy column. */
+    margin-left: 4.8vw;
+}
+
+.brand i {
+    font-size: 46px;
+    color: #1b5ba2;
+}
+
+.brand-name {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.brand-tagline {
+    font-size: 17px;
+    white-space: nowrap;
+    color: var(--muted-deep);
+}
+
+.visual-copy {
+    margin: 10.2vh 0 0;
+    max-width: 560px;
+}
+
+.visual-copy h1 {
+    margin: 0 0 20px;
+    font-size: 40px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -.5px;
+}
+
+.visual-copy p {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.55;
+    color: var(--muted-deep);
+    max-width: 400px;
+}
+
+.quote-card {
+    align-self: flex-start;
+    display: flex;
+    gap: 16px;
+    /* Hangs toward the screen edge, past the copy column, as in the mockup. */
+    margin: auto 0 0 -5.5vw;
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    background: #f9f8f8;
+    box-shadow: 0 4px 14px rgba(7, 27, 52, .08);
+}
+
+.quote-card i {
+    color: #0b4b8f;
+    font-size: 20px;
+}
+
+.quote-text {
+    margin: 0 0 8px;
+    max-width: 215px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--ink);
+}
+
+.quote-author {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* ---------- Right: form panel ---------- */
+
+.auth-panel {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 46.2%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 40px;
+    background: #fff;
+    border-radius: 32px 0 0 32px;
+}
+
+.auth-form {
+    width: 100%;
+    max-width: 500px;
+}
+
+.auth-form h2 {
+    margin: 0 0 18px;
+    font-size: 44px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -.5px;
+}
+
+.auth-form .subtitle {
+    margin: 0 0 40px;
+    font-size: 20px;
+    color: var(--muted);
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+.input-shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-shell .leading,
+.input-shell .trailing {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    font-size: 17px;
+}
+
+.input-shell .leading {
+    left: 0;
+    color: var(--muted-deep);
+    pointer-events: none;
+}
+
+.input-shell .trailing {
+    right: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.input-shell input {
+    width: 100%;
+    height: 62px;
+    padding: 0 52px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--navy);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    outline: none;
+}
+
+.input-shell input::placeholder {
+    color: var(--placeholder);
+}
+
+.input-shell input:focus {
+    border-color: var(--btn);
+}
+
+.input-shell.is-invalid input {
+    border-color: #c0392b;
+}
+
+.field-error {
+    margin: 6px 2px 0;
+    font-size: 13px;
+    color: #c0392b;
+}
+
+.options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 28px 0 35px;
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.remember input {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin: 0;
+    border: 1px solid #c6d0da;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.remember input:checked {
+    background: var(--blue) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3.2L13 5'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+    border-color: var(--blue);
+}
+
+.forgot {
+    font-size: 16px;
+    color: var(--blue);
+    text-decoration: none;
+}
+
+.forgot:hover {
+    text-decoration: underline;
+}
+
+.btn-signin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    height: 72px;
+    font: inherit;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--btn);
+    border: 0;
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.btn-signin:hover {
+    background: var(--btn-hover);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0 29px;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--divider);
+}
+
+.info-box {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 26px 24px;
+    border-radius: var(--radius);
+    background: var(--info-bg);
+}
+
+.info-box i {
+    font-size: 20px;
+    color: #184bd2;
+}
+
+.info-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.info-text {
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.alert-flash {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: #fdecec;
+    color: #a12028;
+    font-size: 14px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1400px) {
+    .auth-form h2 {
+        font-size: 38px;
+    }
+
+    .visual-copy h1 {
+        font-size: 36px;
+    }
+
+    .brand {
+        margin-left: 2vw;
+    }
+
+    .brand i {
+        font-size: 40px;
+    }
+
+    .brand-name {
+        font-size: 22px;
+    }
+
+    .brand-tagline {
+        font-size: 15px;
+    }
+
+    .auth-panel {
+        padding: 48px 32px;
+    }
+}
+
+@media (max-width: 991px) {
+    .auth-visual {
+        display: none;
+    }
+
+    .auth-panel {
+        flex: 1 1 100%;
+        border-radius: 0;
+        padding: 48px 24px;
+    }
+}
+
+@media (max-width: 575px) {
+    .auth-form h2 {
+        font-size: 34px;
+    }
+
+    .auth-form .subtitle {
+        margin-bottom: 32px;
+        font-size: 17px;
+    }
+
+    .remember,
+    .forgot {
+        font-size: 14px;
+    }
+
+    .btn-signin {
+        height: 62px;
+        font-size: 18px;
+    }
+}
