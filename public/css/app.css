@@ -112,19 +112,65 @@ a:hover {
 }
 
 .nav-group {
-    margin-top: 16px;
+    margin-top: 4px;
 }
 
-.nav-group:first-child {
-    margin-top: 0;
+/* Collapsible group header (a <summary>, so it works without JavaScript). */
+.nav-parent {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
 }
 
-.nav-group-label {
-    padding: 0 12px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .06em;
+.nav-parent::-webkit-details-marker,
+.nav-parent::marker {
+    display: none;
+    content: '';
+}
+
+.nav-parent > i:first-child {
+    width: 18px;
+    text-align: center;
+    font-size: 14px;
     color: var(--muted);
+}
+
+.nav-parent:hover {
+    background: var(--page);
+}
+
+.nav-parent.has-active {
+    color: var(--navy);
+    font-weight: 600;
+}
+
+.nav-parent.has-active > i:first-child {
+    color: var(--primary);
+}
+
+.nav-caret {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform .15s ease;
+}
+
+.nav-group[open] > .nav-parent .nav-caret {
+    transform: rotate(180deg);
+}
+
+.nav-children {
+    padding: 2px 0 6px 14px;
+    margin-left: 11px;
+    border-left: 1px solid var(--line);
 }
 
 .sidebar-nav .nav-link {
@@ -268,6 +314,76 @@ a:hover {
 .user-chip:hover {
     color: var(--navy);
     text-decoration: none;
+}
+
+.user-chip:focus {
+    outline: none;
+}
+
+.user-chip:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+.user-caret {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform .15s ease;
+}
+
+.user-chip[aria-expanded="true"] .user-caret {
+    transform: rotate(180deg);
+}
+
+/* ---------- Dropdown menu ---------- */
+
+.dropdown-menu {
+    min-width: 208px;
+    margin-top: 8px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(7, 27, 52, .10);
+}
+
+.dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.dropdown-menu .dropdown-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+    background: var(--page);
+    color: var(--navy);
+}
+
+.dropdown-menu .dropdown-item:active {
+    background: var(--soft);
+    color: var(--primary);
+}
+
+.dropdown-menu .dropdown-divider {
+    margin: 6px 4px;
+    border-top-color: var(--line);
+}
+
+.dropdown-menu form {
+    margin: 0;
 }
 
 .user-avatar {

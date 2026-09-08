@@ -44,17 +44,17 @@
             ['label' => null, 'items' => [
                 ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-gauge-high', 'label' => 'Dashboard'],
             ]],
-            ['label' => 'MANAGEMENT', 'items' => array_values(array_filter([
+            ['label' => 'Management', 'icon' => 'fa-folder-open', 'items' => array_values(array_filter([
                 $navUser->isAdmin() ? ['route' => 'schools.index', 'match' => 'schools.*', 'icon' => 'fa-school', 'label' => 'Schools'] : null,
                 $navUser->isAdmin() ? ['route' => 'users.index', 'match' => 'users.index', 'icon' => 'fa-users', 'label' => 'Users'] : null,
                 ['route' => 'students.index', 'match' => 'students.*', 'icon' => 'fa-user-graduate', 'label' => 'Students'],
             ]))],
-            ['label' => 'ACADEMICS', 'items' => array_values(array_filter([
+            ['label' => 'Academics', 'icon' => 'fa-book-open', 'items' => array_values(array_filter([
                 $navUser->isAdmin() ? ['route' => 'subjects.index', 'match' => 'subjects.*', 'icon' => 'fa-book', 'label' => 'Subjects'] : null,
                 $navUser->isAdmin() ? ['route' => 'grades.index', 'match' => 'grades.*', 'icon' => 'fa-award', 'label' => 'Grade Scale'] : null,
                 ['route' => 'reports.index', 'match' => 'reports.*', 'icon' => 'fa-file-lines', 'label' => 'Report Cards'],
             ]))],
-            $navUser->isAdmin() ? ['label' => 'TOOLS', 'items' => [
+            $navUser->isAdmin() ? ['label' => 'Tools', 'icon' => 'fa-screwdriver-wrench', 'items' => [
                 ['route' => 'bulk-import.index', 'match' => 'bulk-import.*', 'icon' => 'fa-upload', 'label' => 'Bulk Import'],
             ]] : null,
         ]));
@@ -70,17 +70,36 @@
 
         <nav class="sidebar-nav">
             @foreach($navGroups as $group)
-                <div class="nav-group">
-                    @if($group['label'])
-                        <div class="nav-group-label">{{ $group['label'] }}</div>
-                    @endif
-                    @foreach($group['items'] as $item)
+                @php
+                    $groupItems = $group['items'];
+                    $groupOpen = collect($groupItems)->contains(fn ($item) => request()->routeIs($item['match']));
+                @endphp
+
+                @if(!$group['label'])
+                    @foreach($groupItems as $item)
                         <a class="nav-link {{ request()->routeIs($item['match']) ? 'active' : '' }}"
                            href="{{ route($item['route']) }}">
                             <i class="fas {{ $item['icon'] }}"></i>{{ $item['label'] }}
                         </a>
                     @endforeach
-                </div>
+                @else
+                    {{-- <details> keeps the group collapsible without any JavaScript. --}}
+                    <details class="nav-group" {{ $groupOpen ? 'open' : '' }}>
+                        <summary class="nav-parent {{ $groupOpen ? 'has-active' : '' }}">
+                            <i class="fas {{ $group['icon'] }}"></i>
+                            <span>{{ $group['label'] }}</span>
+                            <i class="fas fa-chevron-down nav-caret"></i>
+                        </summary>
+                        <div class="nav-children">
+                            @foreach($groupItems as $item)
+                                <a class="nav-link {{ request()->routeIs($item['match']) ? 'active' : '' }}"
+                                   href="{{ route($item['route']) }}">
+                                    <i class="fas {{ $item['icon'] }}"></i>{{ $item['label'] }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
             @endforeach
         </nav>
 
@@ -114,6 +133,7 @@
                             <span class="user-name d-block">{{ $navUser->name }}</span>
                             <span class="user-role d-block">{{ ucfirst($navUser->role) }}</span>
                         </span>
+                        <i class="fas fa-chevron-down user-caret"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
