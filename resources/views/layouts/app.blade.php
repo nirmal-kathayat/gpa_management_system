@@ -29,23 +29,12 @@
             @include('layouts.header')
 
             <div class="page-body">
-                @if(session('success'))
-                    <div class="flash flash-success no-print">
-                        <i class="fas fa-circle-check"></i>{{ session('success') }}
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="flash flash-error no-print">
-                        <i class="fas fa-circle-exclamation"></i>{{ session('error') }}
-                    </div>
-                @endif
-
                 @yield('content')
             </div>
         </div>
 
         @include('layouts.footer')
+        <x-toast />
         <x-confirm-dialog />
     @else
         <div class="container py-4">
@@ -58,6 +47,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('assets/js/table-helper.js') }}"></script>
     <script src="{{ asset('assets/js/confirm-dialog.js') }}"></script>
+    <script src="{{ asset('assets/js/toast.js') }}"></script>
     <x-scripts />
     @stack('scripts')
 </body>

@@ -3,6 +3,9 @@
 /public/build
 /public/hot
 /public/storage
+
+# School logos uploaded through the app, not source.
+/public/assets/school/
 /storage/*.key
 /vendor
 .env
