@@ -66,7 +66,6 @@ class DashboardController extends Controller
             'schoolRows' => $this->schoolRows($schools),
             'studentRows' => $this->studentRows($students),
             'activities' => $this->activities($schools, $students, $users),
-            'attention' => $this->attention($schools, $students),
         ]);
     }
 
@@ -286,44 +285,6 @@ class DashboardController extends Controller
             ->take(5)
             ->values()
             ->map(fn (array $item) => $item + ['ago' => $item['at']->diffForHumans()]);
-    }
-
-    /**
-     * Real gaps in the data, not a workflow queue: schools without students,
-     * then students who have no report card yet.
-     */
-    private function attention($schools, $students)
-    {
-        $items = (clone $schools)->doesntHave('students')
-            ->orderBy('name')
-            ->take(3)
-            ->get()
-            ->map(fn (School $school) => [
-                'icon' => 'fa-school',
-                'tone' => 'is-blue',
-                'title' => $school->name,
-                'subtitle' => 'No students added yet',
-                'tag' => 'Setup',
-            ]);
-
-        if ($items->count() < 4) {
-            $items = $items->concat(
-                (clone $students)->doesntHave('reports')
-                    ->with('school')
-                    ->orderBy('name')
-                    ->take(4 - $items->count())
-                    ->get()
-                    ->map(fn (Student $student) => [
-                        'icon' => 'fa-user-graduate',
-                        'tone' => 'is-green',
-                        'title' => $student->name,
-                        'subtitle' => ($student->school->name ?? 'No school') . ' · class ' . $student->class,
-                        'tag' => 'No report',
-                    ])
-            );
-        }
-
-        return $items;
     }
 
     private function gpaBands($reports): array

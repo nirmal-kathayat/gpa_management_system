@@ -10,7 +10,7 @@
     </div>
     @can('schools.create')
         <div class="toolbar-actions">
-            <button type="button" class="btn-primary-flat" id="addSchoolBtn">
+            <button type="button" class="btn-primary-flat" data-add-school>
                 <i class="fas fa-plus"></i>Add School
             </button>
         </div>

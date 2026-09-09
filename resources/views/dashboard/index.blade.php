@@ -5,15 +5,17 @@
 
 @php
     // Quick actions are the four things this user is actually allowed to start.
+    // Schools and subjects are short forms, so they open their modal on this
+    // page rather than sending the user off to the listing to fill it in.
     $quickActions = array_values(array_filter([
         auth()->user()->can('students.create')
-            ? ['fa-user-graduate', 'is-green', 'Add Student', route('students.create')] : null,
+            ? ['fa-user-graduate', 'is-green', 'Add Student', route('students.create'), null] : null,
         auth()->user()->can('schools.create')
-            ? ['fa-school', 'is-blue', 'Add School', route('schools.create')] : null,
+            ? ['fa-school', 'is-blue', 'Add School', null, 'school'] : null,
         auth()->user()->can('subjects.create')
-            ? ['fa-book', 'is-purple', 'Add Subject', route('subjects.create')] : null,
+            ? ['fa-book', 'is-purple', 'Add Subject', null, 'subject'] : null,
         auth()->user()->can('reports.create')
-            ? ['fa-file-lines', 'is-rose', 'Generate Report', route('reports.create')] : null,
+            ? ['fa-file-lines', 'is-rose', 'Generate Report', route('reports.create'), null] : null,
     ]));
 
     $trendTotal = collect($trend)->sum('students');
@@ -43,9 +45,9 @@
         @endif
 
         @can('schools.create')
-            <a class="btn-primary-flat" href="{{ route('schools.create') }}">
+            <button type="button" class="btn-primary-flat" data-add-school>
                 <i class="fas fa-plus"></i>Add School
-            </a>
+            </button>
         @elsecan('reports.create')
             <a class="btn-primary-flat" href="{{ route('reports.create') }}">
                 <i class="fas fa-plus"></i>New Report Card
@@ -162,11 +164,18 @@
         <div class="panel-body">
             @if($quickActions)
                 <div class="quick-grid">
-                    @foreach($quickActions as [$icon, $tone, $label, $url])
-                        <a class="quick-tile {{ $tone }}" href="{{ $url }}">
-                            <i class="fas {{ $icon }}" aria-hidden="true"></i>
-                            <span>{{ $label }}</span>
-                        </a>
+                    @foreach($quickActions as [$icon, $tone, $label, $url, $modal])
+                        @if($url)
+                            <a class="quick-tile {{ $tone }}" href="{{ $url }}">
+                                <i class="fas {{ $icon }}" aria-hidden="true"></i>
+                                <span>{{ $label }}</span>
+                            </a>
+                        @else
+                            <button type="button" class="quick-tile {{ $tone }}" data-add-{{ $modal }}>
+                                <i class="fas {{ $icon }}" aria-hidden="true"></i>
+                                <span>{{ $label }}</span>
+                            </button>
+                        @endif
                     @endforeach
                 </div>
             @else
@@ -266,51 +275,35 @@
     </section>
 </div>
 
-<div class="dash-row is-two">
-    <section class="panel">
-        <div class="panel-head">
-            <div class="panel-title"><i class="fas fa-clock-rotate-left"></i>Recent Activity</div>
-        </div>
+<section class="panel">
+    <div class="panel-head">
+        <div class="panel-title"><i class="fas fa-clock-rotate-left"></i>Recent Activity</div>
+    </div>
 
-        <div class="panel-body">
-            <div class="feed">
-                @forelse($activities as $item)
-                    <div class="feed-row">
-                        <span class="feed-icon {{ $item['tone'] }}"><i class="fas {{ $item['icon'] }}"></i></span>
-                        <div class="feed-main">
-                            <span class="feed-title">{{ $item['title'] }}</span>
-                            <span class="feed-text">{{ $item['text'] }}</span>
-                        </div>
-                        <span class="feed-time">{{ $item['ago'] }}</span>
+    <div class="panel-body">
+        <div class="feed">
+            @forelse($activities as $item)
+                <div class="feed-row">
+                    <span class="feed-icon {{ $item['tone'] }}"><i class="fas {{ $item['icon'] }}"></i></span>
+                    <div class="feed-main">
+                        <span class="feed-title">{{ $item['title'] }}</span>
+                        <span class="feed-text">{{ $item['text'] }}</span>
                     </div>
-                @empty
-                    <p class="empty-note">Nothing has happened yet.</p>
-                @endforelse
-            </div>
+                    <span class="feed-time">{{ $item['ago'] }}</span>
+                </div>
+            @empty
+                <p class="empty-note">Nothing has happened yet.</p>
+            @endforelse
         </div>
-    </section>
+    </div>
+</section>
 
-    <section class="panel">
-        <div class="panel-head">
-            <div class="panel-title"><i class="fas fa-triangle-exclamation"></i>Needs Attention</div>
-        </div>
+{{-- Both short forms live on this page so a quick action never has to leave it. --}}
+@can('schools.create')
+    @include('schools._form_modal')
+@endcan
 
-        <div class="panel-body">
-            <div class="feed">
-                @forelse($attention as $item)
-                    <div class="feed-row">
-                        <span class="feed-icon {{ $item['tone'] }}"><i class="fas {{ $item['icon'] }}"></i></span>
-                        <div class="feed-main">
-                            <span class="feed-title">{{ $item['title'] }}</span>
-                            <span class="feed-text">{{ $item['subtitle'] }}</span>
-                        </div>
-                        <span class="pill pill-warning">{{ $item['tag'] }}</span>
-                    </div>
-                @empty
-                    <p class="empty-note">Nothing needs attention.</p>
-                @endforelse
-            </div>
-        </div>
-    </section>
-</div>
+@can('subjects.create')
+    @include('subjects._form_modal')
+@endcan
 @endsection

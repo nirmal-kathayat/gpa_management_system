@@ -12,7 +12,9 @@
         ? \App\Models\Subject::find(old('subject_id'))
         : (request()->filled('edit') ? \App\Models\Subject::find(request('edit')) : null);
 
-    $reopen = $errors->any() || request()->boolean('add') || $editing;
+    // Keyed on this form's own marker: the dashboard carries more than one
+    // modal, and they must not all pop open on one form's errors.
+    $reopen = old('form') === 'subject' || request()->boolean('add') || $editing;
 @endphp
 
 <div class="modal fade form-modal" id="subjectFormModal" tabindex="-1"
@@ -24,6 +26,7 @@
                 @csrf
                 <input type="hidden" name="_method" id="subjectFormMethod" value="{{ $editing ? 'PUT' : 'POST' }}">
                 <input type="hidden" name="subject_id" id="subjectFormId" value="{{ $editing?->id }}">
+                <input type="hidden" name="form" value="subject">
 
                 <div class="form-card-head">
                     <h2 class="form-card-title" id="subjectFormTitle">
@@ -141,7 +144,7 @@
         }
 
         document.addEventListener('click', function (event) {
-            if (event.target.closest('#addSubjectBtn')) {
+            if (event.target.closest('[data-add-subject]')) {
                 event.preventDefault();
                 show(null);
                 return;

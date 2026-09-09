@@ -10,7 +10,7 @@
     </div>
     @can('subjects.create')
         <div class="toolbar-actions">
-            <button type="button" class="btn-primary-flat" id="addSubjectBtn">
+            <button type="button" class="btn-primary-flat" data-add-subject>
                 <i class="fas fa-plus"></i>Add Subject
             </button>
         </div>

@@ -12,7 +12,9 @@
         ? \App\Models\School::find(old('school_id'))
         : (request()->filled('edit') ? \App\Models\School::find(request('edit')) : null);
 
-    $reopen = $errors->any() || request()->boolean('add') || $editing;
+    // Keyed on this form's own marker: the dashboard carries more than one
+    // modal, and they must not all pop open on one form's errors.
+    $reopen = old('form') === 'school' || request()->boolean('add') || $editing;
 @endphp
 
 <div class="modal fade form-modal" id="schoolFormModal" tabindex="-1"
@@ -25,6 +27,7 @@
                 @csrf
                 <input type="hidden" name="_method" id="schoolFormMethod" value="{{ $editing ? 'PUT' : 'POST' }}">
                 <input type="hidden" name="school_id" id="schoolFormId" value="{{ $editing?->id }}">
+                <input type="hidden" name="form" value="school">
 
                 <div class="form-card-head">
                     <h2 class="form-card-title" id="schoolFormTitle">
@@ -173,7 +176,7 @@
         }
 
         document.addEventListener('click', function (event) {
-            if (event.target.closest('#addSchoolBtn')) {
+            if (event.target.closest('[data-add-school]')) {
                 event.preventDefault();
                 show(null);
                 return;
