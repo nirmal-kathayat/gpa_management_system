@@ -9,17 +9,21 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Syncs App\Support\Permissions into the database and gives the three built-in
- * roles their starting sets. Safe to re-run: it only ever adds what is missing,
- * so permissions an admin granted by hand in the UI are left alone.
+ * Syncs App\Support\Permissions into the database.
+ *
+ * 'admin' is the only role the application itself knows about, so it is always
+ * present and always holds everything. 'teacher' and 'staff' are examples for a
+ * fresh install and nothing in the code names them - once an administrator has
+ * made roles of their own, re-running this seeder leaves them alone rather than
+ * resurrecting examples they deleted.
  */
 class RolePermissionSeeder extends Seeder
 {
     /**
-     * What each built-in role starts with. 'admin' is absent on purpose - it
+     * Example roles for a fresh install. 'admin' is absent on purpose - it
      * passes every check through the Gate::before in AuthServiceProvider.
      */
-    private const ROLE_PERMISSIONS = [
+    private const EXAMPLE_ROLES = [
         'teacher' => [
             'students.viewAny', 'students.create', 'students.update',
             'reports.viewAny', 'reports.create', 'reports.update', 'reports.delete', 'reports.pdf',
@@ -44,10 +48,12 @@ class RolePermissionSeeder extends Seeder
         // Roles screen shows the truth rather than an empty row.
         Role::findOrCreate('admin', 'web')->syncPermissions(Permissions::names());
 
-        foreach (self::ROLE_PERMISSIONS as $roleName => $permissions) {
-            $role = Role::findOrCreate($roleName, 'web');
+        if (Role::where('name', '!=', 'admin')->exists()) {
+            return;
+        }
 
-            $role->givePermissionTo(array_diff($permissions, $role->permissions->pluck('name')->all()));
+        foreach (self::EXAMPLE_ROLES as $roleName => $permissions) {
+            Role::findOrCreate($roleName, 'web')->givePermissionTo($permissions);
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

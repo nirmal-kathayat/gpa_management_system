@@ -43,22 +43,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Roles live in spatie/laravel-permission; these three stay as shorthands
-     * because 'admin' also decides school scoping, not just what is permitted.
+     * The one role the app itself knows about: 'admin' decides school scoping,
+     * not just what is permitted, and cannot be deleted from the Roles screen.
+     * Every other role is whatever an administrator has created.
      */
     public function isAdmin()
     {
         return $this->hasRole('admin');
-    }
-
-    public function isTeacher()
-    {
-        return $this->hasRole('teacher');
-    }
-
-    public function isStaff()
-    {
-        return $this->hasRole('staff');
     }
 
     /**

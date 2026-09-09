@@ -26,22 +26,25 @@ class DashboardController extends Controller
         $user = auth()->user();
         $isAdmin = $user->isAdmin();
 
-        // Teachers and staff only ever see their own school's numbers.
+        // Non-admins only ever see their own school's numbers.
         $schools = School::query();
         $students = Student::query();
         $reports = StudentReport::query();
-        $teachers = User::role('teacher');
+
+        // Roles are created and deleted by admins, so this cannot name one:
+        // anybody who is not an administrator is counted as staff.
+        $staff = User::whereDoesntHave('roles', fn ($q) => $q->where('name', 'admin'));
 
         if (!$isAdmin) {
             $schools->where('id', $user->school_id);
             $students->where('school_id', $user->school_id);
-            $teachers->where('school_id', $user->school_id);
+            $staff->where('school_id', $user->school_id);
             $reports->whereIn('student_id', Student::where('school_id', $user->school_id)->select('id'));
         }
 
         return view('dashboard.index', [
             'isAdmin' => $isAdmin,
-            'stats' => $this->stats($isAdmin, $schools, $students, $teachers, $reports),
+            'stats' => $this->stats($isAdmin, $schools, $students, $staff, $reports),
             'schoolRows' => $this->schoolRows($schools),
             'gpaBands' => $this->gpaBands($reports),
             'attention' => $this->attention($schools, $students),
@@ -54,7 +57,7 @@ class DashboardController extends Controller
      * stored baseline: counts over the last 30 days, GPA against the previous
      * academic year.
      */
-    private function stats(bool $isAdmin, $schools, $students, $teachers, $reports): array
+    private function stats(bool $isAdmin, $schools, $students, $staff, $reports): array
     {
         $since = now()->subDays(30);
         $averageGpa = (clone $reports)->avg('final_gpa');
@@ -79,9 +82,9 @@ class DashboardController extends Controller
                 'delta' => $this->countDelta((clone $students)->where('created_at', '>=', $since)->count()),
             ],
             [
-                'label' => 'Teachers',
-                'value' => number_format((clone $teachers)->count()),
-                'delta' => $this->countDelta((clone $teachers)->where('created_at', '>=', $since)->count()),
+                'label' => 'Staff',
+                'value' => number_format((clone $staff)->count()),
+                'delta' => $this->countDelta((clone $staff)->where('created_at', '>=', $since)->count()),
             ],
             [
                 'label' => 'Average GPA',
