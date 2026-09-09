@@ -71,6 +71,15 @@ a:hover {
     text-decoration: underline;
 }
 
+/* Bootstrap renders <code> in pink, which is the one loud colour on the page. */
+code {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--page);
+    color: var(--navy);
+    font-size: 12px;
+}
+
 /* ---------- Sidebar ---------- */
 
 .sidebar {
