@@ -12,6 +12,7 @@ class Subject extends Model
     protected $fillable = [
         'name',
         'code',
+        'description',
         'full_marks',
         'pass_marks',
         'is_active'

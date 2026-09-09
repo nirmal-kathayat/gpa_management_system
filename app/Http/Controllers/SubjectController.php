@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
+use App\Models\GradeSystem;
+use App\Models\StudentMark;
 use App\Support\TableResponse;
 use Illuminate\Http\Request;
 
@@ -32,6 +34,7 @@ class SubjectController extends Controller
             'code' => $subject->code,
             'full_marks' => $subject->full_marks,
             'pass_marks' => $subject->pass_marks,
+            'description' => $subject->description,
             'is_active' => (int) $subject->is_active,
         ]);
     }
@@ -56,6 +59,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:10|unique:subjects',
+            'description' => 'nullable|string|max:2000',
             'full_marks' => 'required|integer|min:1|max:200',
             'pass_marks' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean'
@@ -70,7 +74,21 @@ class SubjectController extends Controller
 
     public function show(Subject $subject)
     {
-        return view('subjects.show', compact('subject'));
+        // Counted over the final terminal, which is the mark that decides the
+        // year; a student with no mark for this subject is not counted at all.
+        $marks = StudentMark::where('subject_id', $subject->id)->where('exam_type', 'final_terminal');
+
+        $total = (clone $marks)->distinct()->count('student_id');
+        $passed = (clone $marks)->where('total_marks', '>=', $subject->pass_marks)->distinct()->count('student_id');
+
+        return view('subjects.show', [
+            'subject' => $subject,
+            'totalStudents' => $total,
+            'passedStudents' => $passed,
+            'failedStudents' => max(0, $total - $passed),
+            'averageScore' => (clone $marks)->avg('total_marks'),
+            'grades' => GradeSystem::orderByDesc('grade_point')->get(),
+        ]);
     }
 
     public function edit(Subject $subject)
@@ -83,6 +101,7 @@ class SubjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:10|unique:subjects,code,' . $subject->id,
+            'description' => 'nullable|string|max:2000',
             'full_marks' => 'required|integer|min:1|max:200',
             'pass_marks' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean'

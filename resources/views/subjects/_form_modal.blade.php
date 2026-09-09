@@ -76,6 +76,14 @@
                         </div>
 
                         <div class="form-field is-wide">
+                            <label class="form-label" for="subject_description">Description</label>
+                            <textarea id="subject_description" name="description" rows="3"
+                                      placeholder="A short description shown on the subject's page"
+                                      class="form-input @error('description') is-invalid @enderror">{{ old('description', $editing?->description) }}</textarea>
+                            @error('description')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field is-wide">
                             <label class="check-row">
                                 <input type="checkbox" class="check" id="subject_is_active" name="is_active" value="1"
                                        {{ old('is_active', $editing?->is_active ?? true) ? 'checked' : '' }}>
@@ -122,6 +130,7 @@
             document.getElementById('subject_code').value = editing ? row.code : '';
             document.getElementById('subject_full_marks').value = editing ? row.full_marks : 100;
             document.getElementById('subject_pass_marks').value = editing ? row.pass_marks : 32;
+            document.getElementById('subject_description').value = editing ? (row.description ?? '') : '';
             document.getElementById('subject_is_active').checked = editing ? Boolean(row.is_active) : true;
 
             // Clear anything left over from the last time it was open.
