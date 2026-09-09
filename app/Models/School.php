@@ -11,6 +11,11 @@ class School extends Model
 
     protected $fillable = [
         'name',
+        'code',
+        'tagline',
+        'established',
+        'type',
+        'about',
         'address',
         'phone',
         'email',

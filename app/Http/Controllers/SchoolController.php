@@ -29,6 +29,12 @@ class SchoolController extends Controller
         ], fn ($school) => [
             'id' => $school->id,
             'name' => $school->name,
+            // Carried so the edit modal can fill itself without another request.
+            'code' => $school->code,
+            'tagline' => $school->tagline,
+            'established' => $school->established,
+            'type' => $school->type,
+            'about' => $school->about,
             'address' => $school->address,
             'phone' => $school->phone,
             'email' => $school->email,
@@ -56,6 +62,11 @@ class SchoolController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
+            'tagline' => 'nullable|string|max:255',
+            'established' => 'nullable|string|max:50',
+            'type' => 'nullable|string|max:50',
+            'about' => 'nullable|string|max:2000',
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -76,6 +87,11 @@ class SchoolController extends Controller
 
         School::create([
             'name' => $validated['name'],
+            'code' => $validated['code'] ?? null,
+            'tagline' => $validated['tagline'] ?? null,
+            'established' => $validated['established'] ?? null,
+            'type' => $validated['type'] ?? null,
+            'about' => $validated['about'] ?? null,
             'address' => $validated['address'],
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,
@@ -88,8 +104,14 @@ class SchoolController extends Controller
 
     public function show(School $school)
     {
-        $school->load('students');
-        return view('schools.show', compact('school'));
+        $students = $school->students();
+
+        return view('schools.show', [
+            'school' => $school,
+            'studentCount' => (clone $students)->count(),
+            'classCount' => (clone $students)->distinct()->count('class'),
+            'sectionCount' => (clone $students)->distinct()->count('section'),
+        ]);
     }
 
     public function edit(School $school)
@@ -101,6 +123,11 @@ class SchoolController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'code' => 'nullable|string|max:50',
+            'tagline' => 'nullable|string|max:255',
+            'established' => 'nullable|string|max:50',
+            'type' => 'nullable|string|max:50',
+            'about' => 'nullable|string|max:2000',
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -126,6 +153,11 @@ class SchoolController extends Controller
 
         $school->update([
             'name' => $validated['name'],
+            'code' => $validated['code'] ?? null,
+            'tagline' => $validated['tagline'] ?? null,
+            'established' => $validated['established'] ?? null,
+            'type' => $validated['type'] ?? null,
+            'about' => $validated['about'] ?? null,
             'address' => $validated['address'],
             'phone' => $validated['phone'] ?? null,
             'email' => $validated['email'] ?? null,

@@ -15,6 +15,14 @@ class StudentController extends Controller
     {
         $query = auth()->user()->getAccessibleStudents()->with('school:id,name');
 
+        // The school detail page reuses this endpoint for one school only. It is
+        // applied here, not as a filter, so a search inside the grid cannot widen
+        // it back out to every school.
+        if ($request->filled('school_id')) {
+            $this->authorizeSchool((int) $request->input('school_id'));
+            $query->where('school_id', (int) $request->input('school_id'));
+        }
+
         return TableResponse::make($request, $query, [
             'search' => ['name', 'roll_number', 'class'],
             'filters' => [

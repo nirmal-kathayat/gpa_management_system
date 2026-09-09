@@ -48,6 +48,38 @@
                             @error('name')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
 
+                        <div class="form-field">
+                            <label class="form-label" for="school_code">School Code</label>
+                            <input type="text" id="school_code" name="code" value="{{ old('code', $editing?->code) }}"
+                                   placeholder="e.g. JSS001"
+                                   class="form-input @error('code') is-invalid @enderror">
+                            @error('code')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="school_tagline">Tagline</label>
+                            <input type="text" id="school_tagline" name="tagline" value="{{ old('tagline', $editing?->tagline) }}"
+                                   placeholder="e.g. Quality Education for a Better Tomorrow"
+                                   class="form-input @error('tagline') is-invalid @enderror">
+                            @error('tagline')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="school_established">Established</label>
+                            <input type="text" id="school_established" name="established"
+                                   value="{{ old('established', $editing?->established) }}" placeholder="e.g. 2008 B.S."
+                                   class="form-input @error('established') is-invalid @enderror">
+                            @error('established')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="school_type">School Type</label>
+                            <input type="text" id="school_type" name="type" value="{{ old('type', $editing?->type) }}"
+                                   placeholder="e.g. Community"
+                                   class="form-input @error('type') is-invalid @enderror">
+                            @error('type')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
                         <div class="form-field is-wide">
                             <label class="form-label" for="school_address">Address <span class="req">*</span></label>
                             <textarea id="school_address" name="address" rows="3" required
@@ -70,6 +102,14 @@
                                    placeholder="Enter email address"
                                    class="form-input @error('email') is-invalid @enderror">
                             @error('email')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field is-wide">
+                            <label class="form-label" for="school_about">About</label>
+                            <textarea id="school_about" name="about" rows="3"
+                                      placeholder="A short description shown on the school's page"
+                                      class="form-input @error('about') is-invalid @enderror">{{ old('about', $editing?->about) }}</textarea>
+                            @error('about')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
 
                         <div class="form-field is-wide">
@@ -117,10 +157,9 @@
                 : 'Fill in the details below to create a new school.';
             document.getElementById('schoolFormSubmit').textContent = editing ? 'Update School' : 'Create School';
 
-            document.getElementById('school_name').value = editing ? row.name : '';
-            document.getElementById('school_address').value = editing ? (row.address ?? '') : '';
-            document.getElementById('school_phone').value = editing && row.phone !== '—' ? (row.phone ?? '') : '';
-            document.getElementById('school_email').value = editing && row.email !== '—' ? (row.email ?? '') : '';
+            const value = (key) => (editing && row[key] && row[key] !== '—' ? row[key] : '');
+            ['name', 'code', 'tagline', 'established', 'type', 'about', 'address', 'phone', 'email']
+                .forEach((key) => { document.getElementById('school_' + key).value = value(key); });
             document.getElementById('school_logo').value = '';
 
             logo.hidden = !(editing && row.logo);
