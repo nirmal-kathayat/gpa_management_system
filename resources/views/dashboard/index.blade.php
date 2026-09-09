@@ -3,14 +3,45 @@
 @section('title', 'Dashboard - GPA Management System')
 @section('page-title', 'Dashboard')
 
+@php
+    // Quick actions are the four things this user is actually allowed to start.
+    $quickActions = array_values(array_filter([
+        auth()->user()->can('students.create')
+            ? ['fa-user-graduate', 'is-green', 'Add Student', route('students.create')] : null,
+        auth()->user()->can('schools.create')
+            ? ['fa-school', 'is-blue', 'Add School', route('schools.create')] : null,
+        auth()->user()->can('subjects.create')
+            ? ['fa-book', 'is-purple', 'Add Subject', route('subjects.create')] : null,
+        auth()->user()->can('reports.create')
+            ? ['fa-file-lines', 'is-rose', 'Generate Report', route('reports.create')] : null,
+    ]));
+
+    $trendTotal = collect($trend)->sum('students');
+@endphp
+
 @section('content')
-    <div class="welcome-row">
-        <div>
-            <div class="welcome-title">Welcome back, {{ Str::before(auth()->user()->name, ' ') }}</div>
-            <div class="welcome-sub">
-                {{ now()->format('l, F j, Y') }}@if($academicYear) &middot; Academic Year {{ $academicYear }}@endif
-            </div>
-        </div>
+<div class="welcome-row">
+    <div>
+        <h1 class="welcome-title">Welcome back, {{ Str::before(auth()->user()->name, ' ') }}!</h1>
+        <p class="welcome-sub">Here's what's happening in your schools today.</p>
+    </div>
+
+    <div class="welcome-actions">
+        @if($years->isNotEmpty())
+            {{-- Picking a year re-reads the page; it scopes the GPA panels. --}}
+            <form method="GET" action="{{ route('dashboard') }}" class="year-picker">
+                <i class="fas fa-calendar-days" aria-hidden="true"></i>
+                <div>
+                    <label class="year-picker-label" for="year">Academic Year</label>
+                    <select name="year" id="year" onchange="this.form.submit()">
+                        @foreach($years as $option)
+                            <option value="{{ $option }}" @selected($option == $academicYear)>{{ $option }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </form>
+        @endif
+
         @can('schools.create')
             <a class="btn-primary-flat" href="{{ route('schools.create') }}">
                 <i class="fas fa-plus"></i>Add School
@@ -21,91 +52,265 @@
             </a>
         @endcan
     </div>
+</div>
 
-    <div class="stat-grid">
-        @foreach($stats as $stat)
-            <div class="card stat-card">
+<div class="stat-grid">
+    @foreach($stats as $stat)
+        <div class="card stat-card">
+            <span class="stat-icon {{ $stat['tone'] }}"><i class="fas {{ $stat['icon'] }}"></i></span>
+            <div class="stat-main">
                 <div class="stat-label">{{ $stat['label'] }}</div>
                 <div class="stat-value">{{ $stat['value'] }}</div>
-                <div class="stat-delta delta-{{ $stat['delta']['tone'] }}">{{ $stat['delta']['text'] }}</div>
-            </div>
-        @endforeach
-    </div>
-
-    <div class="dash-grid">
-        <section class="panel">
-            <div class="panel-head">
-                <div class="panel-title">{{ $isAdmin ? 'Recently Added Schools' : 'My School' }}</div>
-                @if($isAdmin)
-                    <a href="{{ route('schools.index') }}">View all</a>
-                @endif
-            </div>
-
-            <div class="grid-table-head">
-                <div>SCHOOL NAME</div>
-                <div>ADDRESS</div>
-                <div>STUDENTS</div>
-                <div>AVG GPA</div>
-                <div>STATUS</div>
-            </div>
-
-            @forelse($schoolRows as $school)
-                <div class="grid-table-row">
-                    <div class="cell-strong">{{ $school['name'] }}</div>
-                    <div>{{ $school['address'] }}</div>
-                    <div>{{ $school['students'] }}</div>
-                    <div>{{ $school['gpa'] }}</div>
-                    <div>
-                        <span class="pill pill-{{ $school['statusTone'] }}">{{ $school['status'] }}</span>
-                    </div>
-                </div>
-            @empty
-                <div class="panel-body empty-note">No schools yet.</div>
-            @endforelse
-        </section>
-
-        <div class="dash-side">
-            <section class="panel">
-                <div class="panel-body">
-                    <div class="panel-title mb-3">GPA Distribution</div>
-                    @if($gpaBands[0]['count'] === 0 && collect($gpaBands)->sum('count') === 0)
-                        <div class="empty-note">No report cards yet.</div>
-                    @else
-                    <div class="bar-list">
-                        @foreach($gpaBands as $band)
-                            <div>
-                                <div class="bar-head">
-                                    <span>{{ $band['label'] }}</span>
-                                    <strong>{{ $band['pct'] }}%</strong>
-                                </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width: {{ $band['pct'] }}%"></div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                <div class="stat-delta delta-{{ $stat['delta']['tone'] }}">
+                    @if($stat['delta']['tone'] === 'positive')
+                        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                    @elseif($stat['delta']['tone'] === 'danger')
+                        <i class="fas fa-arrow-down" aria-hidden="true"></i>
                     @endif
+                    {{ $stat['delta']['text'] }}
                 </div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-body">
-                    <div class="panel-title mb-3">Needs Attention</div>
-                    <div class="attention-list">
-                        @forelse($attention as $item)
-                            <div class="attention-row">
-                                <div>
-                                    <div class="attention-title">{{ $item['title'] }}</div>
-                                    <div class="attention-sub">{{ $item['subtitle'] }}</div>
-                                </div>
-                                <span class="pill pill-warning">{{ $item['tag'] }}</span>
-                            </div>
-                        @empty
-                            <div class="empty-note">Nothing needs attention.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </section>
+            </div>
         </div>
-    </div>
+    @endforeach
+</div>
+
+<div class="dash-row is-three">
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-chart-column"></i>Student Trend</div>
+            <div class="legend">
+                <span class="legend-item"><span class="legend-dot is-students"></span>Students</span>
+                <span class="legend-item"><span class="legend-dot is-schools"></span>Schools</span>
+            </div>
+        </div>
+
+        <div class="panel-body">
+            @if($trendTotal === 0)
+                <p class="empty-note">No report cards yet, so there is nothing to chart.</p>
+            @else
+                <div class="trend">
+                    @foreach($trend as $point)
+                        <div class="trend-group">
+                            <div class="trend-cols">
+                                <div class="trend-col is-students" style="height: {{ max($point['studentsPct'], 2) }}%">
+                                    <span class="trend-figure">{{ $point['students'] }}</span>
+                                </div>
+                                <div class="trend-col is-schools" style="height: {{ max($point['schoolsPct'], 2) }}%">
+                                    <span class="trend-figure">{{ $point['schools'] }}</span>
+                                </div>
+                            </div>
+                            <div class="trend-year">{{ $point['year'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="panel-note">Students graded in each academic year, and the schools they came from.</p>
+            @endif
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-chart-pie"></i>GPA Distribution</div>
+            @if($academicYear)<span class="panel-tag">{{ $academicYear }}</span>@endif
+        </div>
+
+        <div class="panel-body is-centred">
+            @if($gpaTotal === 0)
+                <p class="empty-note">No report cards for this year yet.</p>
+            @else
+                <div class="gpa-split">
+                    @php
+                        $circumference = 2 * M_PI * 54;
+                        $offset = 0;
+                    @endphp
+                    <div class="gpa-donut">
+                        <svg viewBox="0 0 128 128" aria-hidden="true">
+                            <circle class="gpa-donut-track" cx="64" cy="64" r="54"></circle>
+                            @foreach($gpaBands as $index => $band)
+                                @php $length = $circumference * $band['count'] / $gpaTotal; @endphp
+                                <circle class="gpa-donut-seg band-{{ $index + 1 }}" cx="64" cy="64" r="54"
+                                        stroke-dasharray="{{ $length }} {{ $circumference - $length }}"
+                                        stroke-dashoffset="{{ -$offset }}"></circle>
+                                @php $offset += $length; @endphp
+                            @endforeach
+                        </svg>
+                        <div class="gpa-donut-centre">
+                            <strong>{{ number_format($gpaTotal) }}</strong>
+                            <span>Students</span>
+                        </div>
+                    </div>
+
+                    <ul class="gpa-legend">
+                        @foreach($gpaBands as $index => $band)
+                            <li>
+                                <span class="legend-dot band-{{ $index + 1 }}"></span>
+                                <span class="gpa-legend-label">{{ $band['label'] }}</span>
+                                <span class="gpa-legend-pct">{{ $band['pct'] }}%</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-bolt"></i>Quick Actions</div>
+        </div>
+
+        <div class="panel-body">
+            @if($quickActions)
+                <div class="quick-grid">
+                    @foreach($quickActions as [$icon, $tone, $label, $url])
+                        <a class="quick-tile {{ $tone }}" href="{{ $url }}">
+                            <i class="fas {{ $icon }}" aria-hidden="true"></i>
+                            <span>{{ $label }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            @else
+                <p class="empty-note">You do not have permission to add anything yet.</p>
+            @endif
+        </div>
+    </section>
+</div>
+
+<div class="dash-row is-two">
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-school"></i>{{ $isAdmin ? 'Recently Added Schools' : 'My School' }}</div>
+            @can('schools.viewAny')
+                <a href="{{ route('schools.index') }}">View all</a>
+            @endcan
+        </div>
+
+        <div class="dash-table-wrap">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th class="is-num">#</th>
+                        <th>School Name</th>
+                        <th>Address</th>
+                        <th>Students</th>
+                        <th>Avg GPA</th>
+                        <th>Status</th>
+                        <th>Added On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($schoolRows as $index => $school)
+                        <tr>
+                            <td class="is-num">{{ $index + 1 }}</td>
+                            <td>
+                                @can('schools.viewAny')
+                                    <a href="{{ route('schools.show', $school['id']) }}">{{ $school['name'] }}</a>
+                                @else
+                                    <span class="cell-strong">{{ $school['name'] }}</span>
+                                @endcan
+                            </td>
+                            <td>{{ $school['address'] }}</td>
+                            <td>{{ $school['students'] }}</td>
+                            <td>{{ $school['gpa'] }}</td>
+                            <td><span class="pill pill-{{ $school['statusTone'] }}">{{ $school['status'] }}</span></td>
+                            <td>{{ $school['added'] }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="empty-note">No schools yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-user-graduate"></i>Recent Students</div>
+            @can('students.viewAny')
+                <a href="{{ route('students.index') }}">View all</a>
+            @endcan
+        </div>
+
+        <div class="dash-table-wrap">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th class="is-num">#</th>
+                        <th>Name</th>
+                        <th>School</th>
+                        <th>Class</th>
+                        <th>Added On</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($studentRows as $index => $student)
+                        <tr>
+                            <td class="is-num">{{ $index + 1 }}</td>
+                            <td>
+                                @can('students.viewAny')
+                                    <a href="{{ route('students.show', $student['id']) }}">{{ $student['name'] }}</a>
+                                @else
+                                    <span class="cell-strong">{{ $student['name'] }}</span>
+                                @endcan
+                            </td>
+                            <td>{{ $student['school'] }}</td>
+                            <td>{{ $student['class'] }}</td>
+                            <td>{{ $student['added'] }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="empty-note">No students yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="dash-row is-two">
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-clock-rotate-left"></i>Recent Activity</div>
+        </div>
+
+        <div class="panel-body">
+            <div class="feed">
+                @forelse($activities as $item)
+                    <div class="feed-row">
+                        <span class="feed-icon {{ $item['tone'] }}"><i class="fas {{ $item['icon'] }}"></i></span>
+                        <div class="feed-main">
+                            <span class="feed-title">{{ $item['title'] }}</span>
+                            <span class="feed-text">{{ $item['text'] }}</span>
+                        </div>
+                        <span class="feed-time">{{ $item['ago'] }}</span>
+                    </div>
+                @empty
+                    <p class="empty-note">Nothing has happened yet.</p>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div class="panel-title"><i class="fas fa-triangle-exclamation"></i>Needs Attention</div>
+        </div>
+
+        <div class="panel-body">
+            <div class="feed">
+                @forelse($attention as $item)
+                    <div class="feed-row">
+                        <span class="feed-icon {{ $item['tone'] }}"><i class="fas {{ $item['icon'] }}"></i></span>
+                        <div class="feed-main">
+                            <span class="feed-title">{{ $item['title'] }}</span>
+                            <span class="feed-text">{{ $item['subtitle'] }}</span>
+                        </div>
+                        <span class="pill pill-warning">{{ $item['tag'] }}</span>
+                    </div>
+                @empty
+                    <p class="empty-note">Nothing needs attention.</p>
+                @endforelse
+            </div>
+        </div>
+    </section>
+</div>
 @endsection

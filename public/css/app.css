@@ -22,6 +22,26 @@
     --danger: #b3261e;
     --danger-bg: #faeaea;
     --logo-navy: #0e2f66;
+
+    /* Soft fill + ink pairs for the dashboard's icon tiles and quick actions. */
+    --tint-blue: #eaf1fa;
+    --ink-blue: #2866ac;
+    --tint-green: #e7f3ec;
+    --ink-green: #1e7a4d;
+    --tint-purple: #eeeafa;
+    --ink-purple: #5b46a8;
+    --tint-amber: #fdf3e4;
+    --ink-amber: #a86a12;
+    --tint-rose: #faeaea;
+    --ink-rose: #b3261e;
+
+    /* GPA bands, high to low: the scale is the meaning, not decoration. */
+    --band-1: #2866ac;
+    --band-2: #2f9e6e;
+    --band-3: #d9a441;
+    --band-4: #e08a3c;
+    --band-5: #c2503f;
+
     --radius: 12px;
     --sidebar-w: 260px;
     --topbar-h: 72px;
@@ -470,9 +490,30 @@ a:hover {
 }
 
 .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
     font-size: 15px;
     font-weight: 600;
     color: var(--navy);
+}
+
+.panel-title i {
+    font-size: 14px;
+    color: var(--primary);
+}
+
+/* A quiet note under a panel's own content, e.g. what a chart is counting. */
+.panel-note {
+    margin: 16px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.panel-tag {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
 }
 
 .panel-body {
@@ -535,34 +576,97 @@ a:hover {
 
 .welcome-row {
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
+    flex-wrap: wrap;
 }
 
 .welcome-title {
-    font-size: 15px;
-    font-weight: 600;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
     color: var(--navy);
 }
 
 .welcome-sub {
-    margin-top: 2px;
+    margin: 4px 0 0;
     font-size: 13px;
     color: var(--muted);
 }
 
+.welcome-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Choosing a year reloads the dashboard, so the control is a plain form. */
+.year-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.year-picker i {
+    font-size: 14px;
+    color: var(--primary);
+}
+
+.year-picker-label {
+    display: block;
+    margin-bottom: 1px;
+    font-size: 10px;
+    line-height: 1.2;
+    color: var(--muted);
+}
+
+.year-picker select {
+    max-width: 90px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    cursor: pointer;
+    outline: none;
+}
+
+/* ---------- Stat cards ---------- */
+
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 16px;
 }
 
 .stat-card {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: flex-start;
+    gap: 14px;
     padding: 18px 20px;
+}
+
+.stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 17px;
+}
+
+.stat-main {
+    min-width: 0;
 }
 
 .stat-label {
@@ -572,14 +676,21 @@ a:hover {
 }
 
 .stat-value {
+    margin-top: 4px;
     font-size: 26px;
     font-weight: 700;
+    line-height: 1.1;
     color: var(--navy);
 }
 
 .stat-delta {
+    margin-top: 6px;
     font-size: 12px;
     font-weight: 600;
+}
+
+.stat-delta i {
+    font-size: 10px;
 }
 
 .delta-positive {
@@ -594,45 +705,308 @@ a:hover {
     color: var(--muted);
 }
 
-.dash-grid {
+/* ---------- Dashboard rows ---------- */
+
+.dash-row {
     display: grid;
-    grid-template-columns: 1.6fr 1fr;
     gap: 16px;
     align-items: start;
 }
 
-.dash-side {
+/* The three-up row ends level, so those bodies take the height that is left. */
+.dash-row.is-three {
+    align-items: stretch;
+}
+
+.dash-row.is-three > .panel {
     display: flex;
     flex-direction: column;
-    gap: 16px;
 }
 
-/* Grid-based table so column widths match the design exactly. */
-.grid-table-head,
-.grid-table-row {
-    display: grid;
-    grid-template-columns: 2fr 1.1fr .9fr 1fr .9fr;
-    gap: 12px;
+.dash-row.is-three > .panel > .panel-body {
+    flex: 1;
+}
+
+/* Content that would otherwise sit at the top of a stretched panel. */
+.panel-body.is-centred {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dash-row.is-three {
+    grid-template-columns: 1.35fr 1.1fr 1fr;
+}
+
+.dash-row.is-two {
+    grid-template-columns: 1.15fr 1fr;
+}
+
+.legend {
+    display: flex;
     align-items: center;
-}
-
-.grid-table-head {
-    padding: 12px 20px;
-    background: var(--page);
-    border-bottom: 1px solid var(--line);
+    gap: 14px;
     font-size: 12px;
-    font-weight: 600;
     color: var(--muted);
 }
 
-.grid-table-row {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--line);
-    font-size: 13px;
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.grid-table-row:last-child {
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.legend-dot.is-students {
+    background: var(--primary);
+}
+
+.legend-dot.is-schools {
+    background: #a9c6e6;
+}
+
+/* ---------- Student trend ---------- */
+
+.trend {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 12px;
+}
+
+.trend-group {
+    flex: 1;
+    min-width: 0;
+}
+
+/* The bars are sized as a percentage of this, so it needs a real height. */
+.trend-cols {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+    height: 168px;
+}
+
+.trend-col {
+    position: relative;
+    width: 26px;
+    border-radius: 6px 6px 0 0;
+}
+
+.trend-col.is-students {
+    background: var(--primary);
+}
+
+.trend-col.is-schools {
+    background: #a9c6e6;
+}
+
+.trend-figure {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    padding-bottom: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.trend-year {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* ---------- GPA distribution ---------- */
+
+.gpa-split {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.gpa-donut {
+    position: relative;
+    flex-shrink: 0;
+    width: 128px;
+    height: 128px;
+}
+
+.gpa-donut svg {
+    width: 128px;
+    height: 128px;
+    transform: rotate(-90deg);
+}
+
+.gpa-donut-track,
+.gpa-donut-seg {
+    fill: none;
+    stroke-width: 14;
+}
+
+.gpa-donut-track {
+    stroke: #eef1f6;
+}
+
+.gpa-donut-centre {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.gpa-donut-centre strong {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.gpa-donut-centre span {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.gpa-legend {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gpa-legend li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 0;
+}
+
+.gpa-legend-label {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.gpa-legend-pct {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.gpa-donut-seg.band-1 { stroke: var(--band-1); }
+.gpa-donut-seg.band-2 { stroke: var(--band-2); }
+.gpa-donut-seg.band-3 { stroke: var(--band-3); }
+.gpa-donut-seg.band-4 { stroke: var(--band-4); }
+.gpa-donut-seg.band-5 { stroke: var(--band-5); }
+
+.legend-dot.band-1 { background: var(--band-1); }
+.legend-dot.band-2 { background: var(--band-2); }
+.legend-dot.band-3 { background: var(--band-3); }
+.legend-dot.band-4 { background: var(--band-4); }
+.legend-dot.band-5 { background: var(--band-5); }
+
+/* ---------- Quick actions ---------- */
+
+/* Two tiles wide beside the charts, four across once it has the row to
+   itself - the tiles should never sit in half an empty panel. */
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-auto-rows: 1fr;
+    gap: 12px;
+    height: 100%;
+}
+
+.quick-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+}
+
+.quick-tile i {
+    font-size: 19px;
+}
+
+.quick-tile:hover {
+    text-decoration: none;
+    filter: brightness(.97);
+}
+
+/* ---------- Dashboard tables ---------- */
+
+.dash-table-wrap {
+    overflow-x: auto;
+}
+
+.dash-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dash-table th {
+    padding: 11px 16px;
+    background: var(--page);
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--muted);
+}
+
+.dash-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink);
+}
+
+/* Counts, grades and dates never need to wrap; names and addresses do. */
+.dash-table td:not(:nth-child(2)):not(:nth-child(3)) {
+    white-space: nowrap;
+}
+
+/* Give the name its width first, so the address is what wraps. */
+.dash-table th:nth-child(2),
+.dash-table td:nth-child(2) {
+    min-width: 145px;
+}
+
+.dash-table tbody tr:last-child td {
     border-bottom: 0;
+}
+
+.dash-table .is-num {
+    width: 44px;
+    color: var(--muted);
+}
+
+.dash-table td a {
+    font-weight: 500;
 }
 
 .cell-strong {
@@ -641,74 +1015,118 @@ a:hover {
     color: var(--navy);
 }
 
-.bar-list {
+/* ---------- Activity and attention feeds ---------- */
+
+.feed {
     display: flex;
     flex-direction: column;
-    gap: 10px;
 }
 
-.bar-head {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.bar-head strong {
-    color: var(--ink);
-    font-weight: 600;
-}
-
-.bar-track {
-    height: 8px;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    background: var(--soft);
-    overflow: hidden;
-}
-
-.bar-fill {
-    height: 100%;
-    background: var(--primary);
-}
-
-.attention-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.attention-row {
+.feed-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
-    padding-bottom: 12px;
+    padding: 12px 0;
     border-bottom: 1px solid var(--line);
 }
 
-.attention-list .attention-row:last-child {
+.feed-row:first-child {
+    padding-top: 0;
+}
+
+.feed-row:last-child {
     padding-bottom: 0;
     border-bottom: 0;
 }
 
-.attention-title {
+.feed-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 14px;
+}
+
+.feed-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 7px;
+    flex: 1;
+    min-width: 0;
+}
+
+.feed-title {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--navy);
 }
 
-.attention-sub {
-    margin-top: 2px;
+.feed-text {
     font-size: 12px;
     color: var(--muted);
+}
+
+.feed-text::before {
+    content: '\2014';
+    margin-right: 7px;
+}
+
+.feed-time {
+    flex-shrink: 0;
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--muted);
+}
+
+/* ---------- Shared tints ---------- */
+
+.stat-icon.is-blue,
+.feed-icon.is-blue,
+.quick-tile.is-blue {
+    background: var(--tint-blue);
+    color: var(--ink-blue);
+}
+
+.stat-icon.is-green,
+.feed-icon.is-green,
+.quick-tile.is-green {
+    background: var(--tint-green);
+    color: var(--ink-green);
+}
+
+.stat-icon.is-purple,
+.feed-icon.is-purple,
+.quick-tile.is-purple {
+    background: var(--tint-purple);
+    color: var(--ink-purple);
+}
+
+.stat-icon.is-amber,
+.feed-icon.is-amber,
+.quick-tile.is-amber {
+    background: var(--tint-amber);
+    color: var(--ink-amber);
+}
+
+.stat-icon.is-rose,
+.feed-icon.is-rose,
+.quick-tile.is-rose {
+    background: var(--tint-rose);
+    color: var(--ink-rose);
 }
 
 .empty-note {
     padding: 6px 0;
     font-size: 13px;
     color: var(--muted);
+}
+
+.dash-table .empty-note {
+    padding: 16px;
 }
 
 /* ---------- Flash messages ---------- */
@@ -2803,16 +3221,22 @@ input[type="file"].form-input::file-selector-button:hover {
 
 /* ---------- Responsive ---------- */
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .stat-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .dash-row.is-three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
     .account-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .dash-grid {
+    .dash-row.is-two {
         grid-template-columns: 1fr;
     }
 }
@@ -2857,19 +3281,29 @@ input[type="file"].form-input::file-selector-button:hover {
         left: 0;
     }
 
-    .grid-table-head {
-        display: none;
+    .stat-grid,
+    .dash-row.is-three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .grid-table-row {
-        grid-template-columns: 1fr auto;
-        row-gap: 4px;
+    .gpa-split {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gpa-donut {
+        align-self: center;
     }
 }
 
 @media (max-width: 575px) {
-    .stat-grid {
+    .stat-grid,
+    .dash-row.is-three {
         grid-template-columns: 1fr;
+    }
+
+    .welcome-actions {
+        flex-wrap: wrap;
     }
 
     .welcome-row {
