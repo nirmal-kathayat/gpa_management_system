@@ -3,17 +3,47 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Support\TableResponse;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
+    /**
+     * JSON rows for the TableHelper grid on the index page.
+     */
+    public function list(Request $request)
+    {
+        $query = auth()->user()->getAccessibleStudents()->with('school:id,name');
+
+        return TableResponse::make($request, $query, [
+            'search' => ['name', 'roll_number', 'class'],
+            'filters' => [
+                'name' => 'name',
+                'class' => 'class',
+                'section' => 'section',
+                'roll_number' => 'roll_number',
+                'school' => fn ($q, $v) => $q->whereHas('school', fn ($s) => $s->where('name', 'like', '%'.$v.'%')),
+            ],
+            'sort' => [
+                'name' => 'name',
+                'class' => 'class',
+                'roll_number' => 'roll_number',
+            ],
+            'default' => ['name', 'asc'],
+        ], fn ($student) => [
+            'id' => $student->id,
+            'name' => $student->name,
+            'class' => $student->class,
+            'section' => $student->section,
+            'roll_number' => $student->roll_number,
+            'school' => $student->school->name ?? '-',
+        ]);
+    }
+
     public function index()
     {
-        $students = auth()->user()->getAccessibleStudents()
-            ->with('school')
-            ->paginate(10);
-
-        return view('students.index', compact('students'));
+        // Rows are fetched by the grid from students.list.
+        return view('students.index');
     }
 
     public function create()

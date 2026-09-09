@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\School;
+use App\Support\TableResponse;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -11,10 +13,45 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    /**
+     * JSON rows for the TableHelper grid on the index page.
+     */
+    public function list(Request $request)
+    {
+        $query = User::with(['school:id,name', 'roles:id,name']);
+
+        return TableResponse::make($request, $query, [
+            'search' => ['name', 'username', 'email'],
+            'filters' => [
+                'name' => 'name',
+                'username' => 'username',
+                'email' => 'email',
+                'role' => fn ($q, $v) => $q->whereHas('roles', fn ($r) => $r->where('name', $v)),
+                'is_active' => ['is_active', 'exact'],
+            ],
+            'sort' => [
+                'name' => 'name',
+                'username' => 'username',
+                'email' => 'email',
+            ],
+            'default' => ['name', 'asc'],
+        ], fn ($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role' => $user->role_name ? Str::headline($user->role_name) : null,
+            'school' => $user->school->name ?? 'All schools',
+            'is_active' => (int) $user->is_active,
+            'is_self' => $user->id === auth()->id(),
+        ]);
+    }
+
     public function index()
     {
-        $users = User::with(['school', 'roles'])->orderBy('name')->paginate(10);
-        return view('users.index', compact('users'));
+        // Rows are fetched by the grid from users.list; the roles are only for
+        // the header filter's dropdown.
+        return view('users.index', ['roles' => $this->assignableRoles()]);
     }
 
     public function create()

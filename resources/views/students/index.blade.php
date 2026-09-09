@@ -1,57 +1,77 @@
 @extends('layouts.app')
 
+@section('title', 'Students - GPA Management System')
+
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Students</h2>
+<div class="toolbar">
+    <div>
+        <h2 class="toolbar-title">Students</h2>
+        <p class="toolbar-sub">Search, filter and sort every student you have access to.</p>
+    </div>
     @can('students.create')
-    <a href="{{ route('students.create') }}" class="btn btn-primary">Add Student</a>
+        <div class="toolbar-actions">
+            <a href="{{ route('students.create') }}" class="btn-primary-flat"><i class="fas fa-plus"></i>Add Student</a>
+        </div>
     @endcan
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Class</th>
-                        <th>Section</th>
-                        <th>Roll No.</th>
-                        <th>School</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($students as $student)
-                    <tr>
-                        <td>{{ $student->id }}</td>
-                        <td>{{ $student->name }}</td>
-                        <td>{{ $student->class }}</td>
-                        <td>{{ $student->section }}</td>
-                        <td>{{ $student->roll_number }}</td>
-                        <td>{{ $student->school->name }}</td>
-                        <td>
-                            <a href="{{ route('students.show', $student) }}" class="btn btn-sm btn-info">View</a>
-                            @can('students.update')
-                            <a href="{{ route('students.edit', $student) }}" class="btn btn-sm btn-warning">Edit</a>
-                            @endcan
-                            @can('students.delete')
-                            <form action="{{ route('students.destroy', $student) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                            @endcan
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        
-        {{ $students->links() }}
+<div class="panel">
+    <div class="panel-body">
+        <div id="students-grid" class="cq-grid"></div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(function () {
+        new TableHelper({
+            containerId: 'students-grid',
+            apiUrl: '{{ route('students.list') }}',
+            perPage: 10,
+            pagination: true,
+            enableCheckbox: false,
+            autoInitDatePickers: false,
+            emptyMessage: 'No students found',
+            search: { placeholder: 'Search name, roll no or class…' },
+            enableSortColumns: ['name', 'class', 'roll_number'],
+
+            columns: [
+                { name: 'S.no', isSerialNo: true, width: '60px', align: 'center' },
+                { name: 'Name', field: 'name' },
+                { name: 'Class', field: 'class' },
+                { name: 'Section', field: 'section' },
+                { name: 'Roll No.', field: 'roll_number' },
+                { name: 'School', field: 'school' },
+                {
+                    name: 'Action',
+                    type: 'actions',
+                    actions: [
+                        { type: 'view', showLabel: false, title: 'View', url: '/students/{id}' },
+                        @can('students.update')
+                        { type: 'edit', showLabel: false, title: 'Edit', url: '/students/{id}/edit' },
+                        @endcan
+                        @can('students.delete')
+                        {
+                            type: 'delete', showLabel: false, title: 'Delete',
+                            onClick: (row) => window.tableDelete('/students/' + row.id, 'Delete ' + row.name + '?')
+                        },
+                        @endcan
+                    ]
+                }
+            ],
+
+            filters: {
+                autoGenerateColumnFilters: false,
+                columnFilters: [
+                    { field: 'name', type: 'text', param: 'name', placeholder: 'Name' },
+                    { field: 'class', type: 'text', param: 'class', placeholder: 'Class' },
+                    { field: 'section', type: 'text', param: 'section', placeholder: 'Section' },
+                    { field: 'roll_number', type: 'text', param: 'roll_number', placeholder: 'Roll no.' },
+                    { field: 'school', type: 'text', param: 'school', placeholder: 'School' }
+                ]
+            }
+        });
+    });
+</script>
+@endpush

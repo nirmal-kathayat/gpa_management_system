@@ -3,14 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
+use App\Support\TableResponse;
 use Illuminate\Http\Request;
 
 class SchoolController extends Controller
 {
+    /**
+     * JSON rows for the TableHelper grid on the index page.
+     */
+    public function list(Request $request)
+    {
+        return TableResponse::make($request, School::withCount('students'), [
+            'search' => ['name', 'address', 'email'],
+            'filters' => [
+                'name' => 'name',
+                'address' => 'address',
+                'phone' => 'phone',
+                'email' => 'email',
+            ],
+            'sort' => [
+                'name' => 'name',
+                'students_count' => 'students_count',
+            ],
+            'default' => ['name', 'asc'],
+        ], fn ($school) => [
+            'id' => $school->id,
+            'name' => $school->name,
+            'address' => $school->address,
+            'phone' => $school->phone,
+            'email' => $school->email,
+            'students_count' => $school->students_count,
+        ]);
+    }
+
     public function index()
     {
-        $schools = School::withCount('students')->paginate(10);
-        return view('schools.index', compact('schools'));
+        // Rows are fetched by the grid from schools.list.
+        return view('schools.index');
     }
 
     public function create()

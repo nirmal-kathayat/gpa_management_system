@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Permissions;
+use App\Support\TableResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,30 @@ use Spatie\Permission\Models\Role;
 class RoleController extends Controller
 {
     /**
+     * JSON rows for the TableHelper grid on the index page.
+     */
+    public function list(Request $request)
+    {
+        $total = Permission::count();
+
+        return TableResponse::make($request, Role::query()->withCount(['permissions', 'users']), [
+            'search' => ['name'],
+            'filters' => ['name' => 'name'],
+            'sort' => ['name' => 'name', 'permissions_count' => 'permissions_count', 'users_count' => 'users_count'],
+            'default' => ['name', 'asc'],
+        ], fn ($role) => [
+            'id' => $role->id,
+            'name' => Str::headline($role->name),
+            'slug' => $role->name,
+            'permissions' => in_array($role->name, self::LOCKED, true)
+                ? 'Full access'
+                : $role->permissions_count.' of '.$total,
+            'users_count' => $role->users_count,
+            'locked' => in_array($role->name, self::LOCKED, true),
+        ]);
+    }
+
+    /**
      * Roles that ship with the app and cannot be renamed or removed. Losing
      * 'admin' would leave nobody able to grant permissions again.
      */
@@ -19,11 +44,9 @@ class RoleController extends Controller
 
     public function index()
     {
-        $roles = Role::withCount(['permissions', 'users'])->orderBy('name')->get();
-
+        // Rows are fetched by the grid from roles.list.
         return view('roles.index', [
-            'roles' => $roles,
-            'locked' => self::LOCKED,
+            'roleCount' => Role::count(),
             'totalPermissions' => Permission::count(),
         ]);
     }

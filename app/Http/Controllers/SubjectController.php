@@ -3,14 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\Subject;
+use App\Support\TableResponse;
 use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
+    /**
+     * JSON rows for the TableHelper grid on the index page.
+     */
+    public function list(Request $request)
+    {
+        return TableResponse::make($request, Subject::query(), [
+            'search' => ['name', 'code'],
+            'filters' => [
+                'name' => 'name',
+                'code' => 'code',
+                'is_active' => ['is_active', 'exact'],
+            ],
+            'sort' => [
+                'name' => 'name',
+                'code' => 'code',
+                'full_marks' => 'full_marks',
+            ],
+            'default' => ['name', 'asc'],
+        ], fn ($subject) => [
+            'id' => $subject->id,
+            'name' => $subject->name,
+            'code' => $subject->code,
+            'full_marks' => $subject->full_marks,
+            'pass_marks' => $subject->pass_marks,
+            'is_active' => (int) $subject->is_active,
+        ]);
+    }
+
     public function index()
     {
-        $subjects = Subject::paginate(10);
-        return view('subjects.index', compact('subjects'));
+        // Rows are fetched by the grid from subjects.list.
+        return view('subjects.index');
     }
 
     public function create()

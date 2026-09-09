@@ -1,52 +1,23 @@
 @extends('layouts.app')
 
+@section('title', 'Grade Scale - GPA Management System')
+
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Grading System</h2>
+<div class="toolbar">
+    <div>
+        <h2 class="toolbar-title">Grading System</h2>
+        <p class="toolbar-sub">Letter grades, their grade points and the marks range each covers.</p>
+    </div>
     @can('grades.create')
-    <a href="{{ route('grades.create') }}" class="btn btn-primary">Add Grade</a>
+        <div class="toolbar-actions">
+            <a href="{{ route('grades.create') }}" class="btn-primary-flat"><i class="fas fa-plus"></i>Add Grade</a>
+        </div>
     @endcan
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Letter Grade</th>
-                        <th>Grade Point</th>
-                        <th>Marks Range</th>
-                        <th>Remarks</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($grades as $grade)
-                    <tr>
-                        <td>
-                            <span class="badge bg-primary fs-6">{{ $grade->letter_grade }}</span>
-                        </td>
-                        <td><strong>{{ $grade->grade_point }}</strong></td>
-                        <td>{{ $grade->marks_from }} - {{ $grade->marks_to }}</td>
-                        <td>{{ $grade->remarks }}</td>
-                        <td>
-                            @can('grades.update')
-                            <a href="{{ route('grades.edit', $grade) }}" class="btn btn-sm btn-warning">Edit</a>
-                            @endcan
-                            @can('grades.delete')
-                            <form action="{{ route('grades.destroy', $grade) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                            @endcan
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+<div class="panel">
+    <div class="panel-body">
+        <div id="grades-grid" class="cq-grid"></div>
     </div>
 </div>
 
@@ -100,3 +71,55 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(function () {
+        new TableHelper({
+            containerId: 'grades-grid',
+            apiUrl: '{{ route('grades.list') }}',
+            perPage: 25,
+            pagination: true,
+            enableCheckbox: false,
+            autoInitDatePickers: false,
+            emptyMessage: 'No grades defined yet',
+            search: { placeholder: 'Search grade or remarks…' },
+            enableSortColumns: ['letter_grade', 'grade_point', 'marks'],
+
+            columns: [
+                { name: 'S.no', isSerialNo: true, width: '60px', align: 'center' },
+                {
+                    name: 'Letter Grade', field: 'letter_grade',
+                    render: (r) => `<span class="badge bg-primary">${th_escapeHtml(r.letter_grade)}</span>`
+                },
+                { name: 'Grade Point', field: 'grade_point', align: 'right', render: (r) => `<strong>${th_escapeHtml(r.grade_point)}</strong>` },
+                { name: 'Marks Range', field: 'marks' },
+                { name: 'Remarks', field: 'remarks', render: (r) => th_escapeHtml(r.remarks || '\u2014') },
+                {
+                    name: 'Action',
+                    type: 'actions',
+                    actions: [
+                        @can('grades.update')
+                        { type: 'edit', showLabel: false, title: 'Edit', url: '/grades/{id}/edit' },
+                        @endcan
+                        @can('grades.delete')
+                        {
+                            type: 'delete', showLabel: false, title: 'Delete',
+                            onClick: (row) => window.tableDelete('/grades/' + row.id, 'Delete grade ' + row.letter_grade + '?')
+                        },
+                        @endcan
+                    ]
+                }
+            ],
+
+            filters: {
+                autoGenerateColumnFilters: false,
+                columnFilters: [
+                    { field: 'letter_grade', type: 'text', param: 'letter_grade', placeholder: 'Grade' },
+                    { field: 'remarks', type: 'text', param: 'remarks', placeholder: 'Remarks' }
+                ]
+            }
+        });
+    });
+</script>
+@endpush

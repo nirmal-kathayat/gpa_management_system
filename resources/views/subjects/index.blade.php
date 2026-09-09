@@ -1,63 +1,83 @@
 @extends('layouts.app')
 
+@section('title', 'Subjects - GPA Management System')
+
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Subjects</h2>
+<div class="toolbar">
+    <div>
+        <h2 class="toolbar-title">Subjects</h2>
+        <p class="toolbar-sub">Subjects available when building a report card.</p>
+    </div>
     @can('subjects.create')
-    <a href="{{ route('subjects.create') }}" class="btn btn-primary">Add Subject</a>
+        <div class="toolbar-actions">
+            <a href="{{ route('subjects.create') }}" class="btn-primary-flat"><i class="fas fa-plus"></i>Add Subject</a>
+        </div>
     @endcan
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Code</th>
-                        <th>Full Marks</th>
-                        <th>Pass Marks</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($subjects as $subject)
-                    <tr>
-                        <td>{{ $subject->id }}</td>
-                        <td>{{ $subject->name }}</td>
-                        <td><code>{{ $subject->code }}</code></td>
-                        <td>{{ $subject->full_marks }}</td>
-                        <td>{{ $subject->pass_marks }}</td>
-                        <td>
-                            @if($subject->is_active)
-                                <span class="badge bg-success">Active</span>
-                            @else
-                                <span class="badge bg-secondary">Inactive</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('subjects.show', $subject) }}" class="btn btn-sm btn-info">View</a>
-                            @can('subjects.update')
-                            <a href="{{ route('subjects.edit', $subject) }}" class="btn btn-sm btn-warning">Edit</a>
-                            @endcan
-                            @can('subjects.delete')
-                            <form action="{{ route('subjects.destroy', $subject) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                            </form>
-                            @endcan
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        
-        {{ $subjects->links() }}
+<div class="panel">
+    <div class="panel-body">
+        <div id="subjects-grid" class="cq-grid"></div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(function () {
+        new TableHelper({
+            containerId: 'subjects-grid',
+            apiUrl: '{{ route('subjects.list') }}',
+            perPage: 10,
+            pagination: true,
+            enableCheckbox: false,
+            autoInitDatePickers: false,
+            emptyMessage: 'No subjects found',
+            search: { placeholder: 'Search name or code…' },
+            enableSortColumns: ['name', 'code', 'full_marks'],
+
+            columns: [
+                { name: 'S.no', isSerialNo: true, width: '60px', align: 'center' },
+                { name: 'Name', field: 'name' },
+                { name: 'Code', field: 'code', render: (r) => `<code>${th_escapeHtml(r.code)}</code>` },
+                { name: 'Full Marks', field: 'full_marks', align: 'right', render: (r) => r.full_marks ?? 0 },
+                { name: 'Pass Marks', field: 'pass_marks', align: 'right', render: (r) => r.pass_marks ?? 0 },
+                {
+                    name: 'Status', field: 'is_active',
+                    render: (r) => r.is_active
+                        ? '<span class="badge bg-success">Active</span>'
+                        : '<span class="badge bg-secondary">Inactive</span>'
+                },
+                {
+                    name: 'Action',
+                    type: 'actions',
+                    actions: [
+                        { type: 'view', showLabel: false, title: 'View', url: '/subjects/{id}' },
+                        @can('subjects.update')
+                        { type: 'edit', showLabel: false, title: 'Edit', url: '/subjects/{id}/edit' },
+                        @endcan
+                        @can('subjects.delete')
+                        {
+                            type: 'delete', showLabel: false, title: 'Delete',
+                            onClick: (row) => window.tableDelete('/subjects/' + row.id, 'Delete ' + row.name + '?')
+                        },
+                        @endcan
+                    ]
+                }
+            ],
+
+            filters: {
+                autoGenerateColumnFilters: false,
+                columnFilters: [
+                    { field: 'name', type: 'text', param: 'name', placeholder: 'Name' },
+                    { field: 'code', type: 'text', param: 'code', placeholder: 'Code' },
+                    {
+                        field: 'is_active', type: 'select', param: 'is_active', allowBlank: true,
+                        options: [{ value: '1', label: 'Active' }, { value: '0', label: 'Inactive' }]
+                    }
+                ]
+            }
+        });
+    });
+</script>
+@endpush

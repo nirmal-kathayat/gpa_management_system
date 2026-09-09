@@ -31,6 +31,12 @@ $resource = function (string $name, string $controller, array $except = []) {
         'destroy' => 'delete',
     ];
 
+    // The table's JSON endpoint. Registered first so /students/list is not read
+    // as /students/{student}.
+    Route::get("{$name}/list", [$controller, 'list'])
+        ->name("{$name}.list")
+        ->middleware("permission:{$name}.viewAny");
+
     foreach (array_diff_key($abilities, array_flip($except)) as $action => $ability) {
         Route::resource($name, $controller)
             ->only($action)
@@ -60,7 +66,8 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
 
     $resource('schools', SchoolController::class);
     $resource('subjects', SubjectController::class);
-    $resource('grades', GradeSystemController::class);
+    // GradeSystemController has no show(), so no /grades/{grade} route.
+    $resource('grades', GradeSystemController::class, ['show']);
 
     // User Management
     $resource('users', UserController::class);

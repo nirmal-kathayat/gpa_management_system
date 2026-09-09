@@ -7,11 +7,49 @@ use App\Models\StudentReport;
 use App\Models\StudentMark;
 use App\Models\Subject;
 use App\Models\GradeSystem;
+use App\Support\TableResponse;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
+    /**
+     * JSON rows for the TableHelper grid on the index page.
+     */
+    public function list(Request $request)
+    {
+        $query = StudentReport::with('student:id,name,class,section')
+            ->whereIn('student_id', auth()->user()->getAccessibleStudents()->select('id'));
+
+        return TableResponse::make($request, $query, [
+            'search' => [
+                fn ($q, $v) => $q->whereHas('student', fn ($s) => $s->where('name', 'like', '%'.$v.'%')),
+                'academic_year',
+            ],
+            'filters' => [
+                'student' => fn ($q, $v) => $q->whereHas('student', fn ($s) => $s->where('name', 'like', '%'.$v.'%')),
+                'academic_year' => 'academic_year',
+                'final_grade' => 'final_grade',
+                'result_status' => ['result_status', 'exact'],
+            ],
+            'sort' => [
+                'academic_year' => 'academic_year',
+                'final_gpa' => 'final_gpa',
+                'issue_date' => 'issue_date',
+            ],
+            'default' => ['id', 'desc'],
+        ], fn ($report) => [
+            'id' => $report->id,
+            'student' => $report->student->name ?? '-',
+            'class' => trim(($report->student->class ?? '').' - '.($report->student->section ?? ''), ' -'),
+            'academic_year' => $report->academic_year,
+            'final_gpa' => number_format((float) $report->final_gpa, 2),
+            'final_grade' => $report->final_grade,
+            'result_status' => $report->result_status ?? 'PASSED',
+            'issue_date' => optional($report->issue_date)->format('d M Y') ?: '-',
+        ]);
+    }
+
     /**
      * A report belongs to a school through its student.
      */
@@ -30,11 +68,16 @@ class ReportController extends Controller
 
     public function index()
     {
-        $reports = StudentReport::with('student')
-            ->whereIn('student_id', auth()->user()->getAccessibleStudents()->select('id'))
-            ->paginate(10);
+        // Counted over every accessible report, not just the page the grid shows.
+        $base = StudentReport::whereIn('student_id', auth()->user()->getAccessibleStudents()->select('id'));
 
-        return view('reports.index', compact('reports'));
+        return view('reports.index', [
+            'totalReports' => (clone $base)->count(),
+            'passedCount' => (clone $base)->where(fn ($q) => $q->where('result_status', '!=', 'FAILED')
+                ->orWhereNull('result_status'))->count(),
+            'failedCount' => (clone $base)->where('result_status', 'FAILED')->count(),
+            'averageGpa' => round((float) (clone $base)->avg('final_gpa'), 2),
+        ]);
     }
 
     public function create()
