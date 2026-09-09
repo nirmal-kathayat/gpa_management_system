@@ -824,10 +824,91 @@ a:hover {
 
 /* ---------- Forms ---------- */
 
+.form-card {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.form-card-head {
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--line);
+}
+
+.form-card-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.form-card-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.form-card-body {
+    padding: 24px 28px;
+}
+
+.form-card-body + .form-card-body {
+    padding-top: 0;
+}
+
+/* A labelled break inside a long form; anything on its right sits beside it. */
+.form-card-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0;
+    padding: 18px 28px 0;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.form-card-section .check-row {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+}
+
+/* Wide forms - the marks matrix needs the room. */
+.form-card.is-roomy {
+    max-width: 1200px;
+}
+
+.form-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 28px;
+    border-top: 1px solid var(--line);
+}
+
+/* Six tracks, so a field can take a half (default), a third or the full row. */
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 18px 20px;
+}
+
+.form-field {
+    grid-column: span 3;
+}
+
+.form-field.is-third {
+    grid-column: span 2;
 }
 
 .form-field.is-wide {
@@ -879,8 +960,35 @@ select.form-input {
     border-color: var(--primary);
 }
 
-.form-input.is-invalid {
+.form-input.is-invalid,
+.form-input.is-invalid:focus {
     border-color: var(--danger);
+}
+
+/* The browser's own button, restyled to sit inside .form-input. */
+input[type="file"].form-input {
+    padding: 0;
+    line-height: 40px;
+    color: var(--muted);
+}
+
+input[type="file"].form-input::file-selector-button {
+    height: 40px;
+    margin-right: 14px;
+    padding: 0 16px;
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-radius: 10px 0 0 10px;
+    background: var(--page);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+input[type="file"].form-input::file-selector-button:hover {
+    background: #eef1f6;
 }
 
 .form-hint {
@@ -1096,10 +1204,127 @@ select.form-input {
     color: var(--navy);
 }
 
+/* ---------- Marks matrix (reports/_form) ---------- */
+
+.marks-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.marks-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.marks-table th {
+    padding: 9px 12px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--page);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.marks-table thead tr:first-child th + th {
+    border-left: 1px solid var(--line);
+}
+
+.marks-table th:first-child {
+    text-align: left;
+}
+
+.marks-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+}
+
+.marks-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.marks-subject {
+    padding-left: 12px !important;
+    font-weight: 500;
+    color: var(--navy);
+    white-space: nowrap;
+}
+
+.marks-input {
+    width: 84px;
+    height: 34px;
+    padding: 0 8px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.marks-empty {
+    padding: 28px 12px !important;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* Column lists on the bulk import screen. */
+.import-columns {
+    margin: 6px 0 0;
+    padding-left: 0;
+    list-style: none;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.import-columns li {
+    padding: 3px 0;
+}
+
+.import-columns code {
+    margin-right: 8px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--page);
+    color: var(--navy);
+    font-size: 12px;
+}
+
+/* Two form cards stacked on one page. */
+.page-body > .form-card + .form-card {
+    margin-top: 0;
+}
+
+/* The logo already on file, shown above the replace-it input. */
+.form-file-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.form-file-current img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+}
+
 @media (max-width: 700px) {
     .form-grid,
     .detail-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .form-field,
+    .form-field.is-third,
+    .form-field.is-wide {
+        grid-column: 1 / -1;
     }
 }
 

@@ -4,18 +4,12 @@
 @section('page-title', 'New Role')
 
 @section('content')
-<div class="toolbar">
-    <div>
-        <h2 class="toolbar-title">Create a role</h2>
-        <p class="toolbar-sub">Name the role, then tick what people holding it are allowed to do.</p>
-    </div>
-    <div class="toolbar-actions">
-        <a href="{{ route('roles.index') }}" class="btn-ghost"><i class="fas fa-arrow-left"></i>Back</a>
-    </div>
-</div>
-
-<form method="POST" action="{{ route('roles.store') }}" class="d-flex flex-column gap-4">
+<form class="form-card" method="POST" action="{{ route('roles.store') }}">
     @csrf
-    @include('roles._form', ['submitLabel' => 'Create role'])
+    @include('roles._form', [
+        'title' => 'Create a Role',
+        'subtitle' => 'Name the role, then tick what people holding it are allowed to do.',
+        'submitLabel' => 'Create Role',
+    ])
 </form>
 @endsection

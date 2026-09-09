@@ -8,12 +8,13 @@
     $currentRole = old('role', $isEdit ? $user->role_name : null);
 @endphp
 
-<div class="panel">
-    <div class="panel-head">
-        <span class="panel-title">Account details</span>
-    </div>
-    <div class="panel-body">
-        <div class="form-grid">
+<div class="form-card-head">
+    <h2 class="form-card-title">{{ $title }}</h2>
+    <p class="form-card-sub">{{ $subtitle }}</p>
+</div>
+
+<div class="form-card-body">
+    <div class="form-grid">
             <div class="form-field">
                 <label class="form-label" for="name">Full name <span class="req">*</span></label>
                 <input type="text" id="name" name="name" required autofocus
@@ -57,7 +58,7 @@
                 @error('address')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
-            <p class="form-section-title">{{ $isEdit ? 'Change password' : 'Password' }}</p>
+        <p class="form-section-title">{{ $isEdit ? 'Change password' : 'Password' }}</p>
 
             <div class="form-field">
                 <label class="form-label" for="password">
@@ -79,16 +80,13 @@
                 <input type="password" id="password_confirmation" name="password_confirmation"
                        autocomplete="new-password" class="form-input" @unless($isEdit) required @endunless>
             </div>
-        </div>
     </div>
 </div>
 
-<div class="panel">
-    <div class="panel-head">
-        <span class="panel-title">Access</span>
-    </div>
-    <div class="panel-body">
-        <div class="form-grid">
+<p class="form-card-section">Access</p>
+
+<div class="form-card-body">
+    <div class="form-grid">
             <div class="form-field">
                 <label class="form-label" for="role">Role <span class="req">*</span></label>
                 <select id="role" name="role" required
@@ -147,13 +145,10 @@
                     {{ $isSelf ? 'You cannot deactivate your own account.' : 'Inactive accounts are signed out and cannot log in.' }}
                 </p>
             </div>
-        </div>
     </div>
 </div>
 
-<div class="btn-row">
-    <button type="submit" class="btn-primary-flat">
-        <i class="fas fa-check"></i>{{ $submitLabel }}
-    </button>
+<div class="form-card-foot">
     <a href="{{ route('users.index') }}" class="btn-ghost">Cancel</a>
+    <button type="submit" class="btn-primary-flat">{{ $submitLabel }}</button>
 </div>

@@ -24,4 +24,18 @@
             </div>
         @endif
     @endforeach
+
+    {{-- A failed submit: the fields carry their own messages, this just says so. --}}
+    @if($errors->any())
+        <div class="toast-item toast-error" role="alert">
+            <i class="fas fa-circle-exclamation toast-icon" aria-hidden="true"></i>
+            <span class="toast-text">
+                {{ $errors->count() }} {{ \Illuminate\Support\Str::plural('field', $errors->count()) }}
+                need{{ $errors->count() === 1 ? 's' : '' }} attention. Check the highlighted {{ \Illuminate\Support\Str::plural('box', $errors->count()) }} below.
+            </span>
+            <button type="button" class="toast-close" aria-label="Dismiss">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+    @endif
 </div>

@@ -26,6 +26,12 @@
         });
     };
 
+    // After a failed submit, put the cursor where the problem is.
+    document.addEventListener('DOMContentLoaded', function () {
+        const firstInvalid = document.querySelector('.form-input.is-invalid');
+        if (firstInvalid) firstInvalid.focus({ preventScroll: false });
+    });
+
     // The sidebar slides in over the page below 992px.
     document.addEventListener('DOMContentLoaded', function () {
         const sidebar = document.getElementById('sidebar');

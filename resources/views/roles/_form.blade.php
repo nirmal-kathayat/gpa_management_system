@@ -9,12 +9,13 @@
     ))->values();
 @endphp
 
-<div class="panel">
-    <div class="panel-head">
-        <span class="panel-title">Role details</span>
-    </div>
-    <div class="panel-body">
-        <div class="form-grid">
+<div class="form-card-head">
+    <h2 class="form-card-title">{{ $title }}</h2>
+    <p class="form-card-sub">{{ $subtitle }}</p>
+</div>
+
+<div class="form-card-body">
+    <div class="form-grid">
             <div class="form-field">
                 <label class="form-label" for="name">Role name <span class="req">*</span></label>
                 <input type="text" id="name" name="name" class="form-input @error('name') is-invalid @enderror"
@@ -26,19 +27,18 @@
                     <p class="form-hint">Saved in lower case with hyphens, shown as typed.</p>
                 @enderror
             </div>
-        </div>
     </div>
 </div>
 
-<div class="panel">
-    <div class="panel-head">
-        <span class="panel-title">Permissions</span>
-        <label class="check-row">
-            <input type="checkbox" class="check" id="permAll">
-            Select everything
-        </label>
-    </div>
-    <div class="panel-body">
+<div class="form-card-section">
+    <span>Permissions</span>
+    <label class="check-row">
+        <input type="checkbox" class="check" id="permAll">
+        Select everything
+    </label>
+</div>
+
+<div class="form-card-body">
         <div class="perm-summary">
             <span class="perm-summary-text">
                 <strong id="permCount">{{ count($granted) }}</strong> of {{ $allNames->count() }} permissions selected
@@ -78,17 +78,14 @@
             </div>
         @endforeach
 
-        @error('permissions.*')
-            <p class="form-error">{{ $message }}</p>
-        @enderror
-    </div>
+    @error('permissions.*')
+        <p class="form-error">{{ $message }}</p>
+    @enderror
 </div>
 
-<div class="btn-row">
-    <button type="submit" class="btn-primary-flat">
-        <i class="fas fa-check"></i>{{ $submitLabel }}
-    </button>
+<div class="form-card-foot">
     <a href="{{ route('roles.index') }}" class="btn-ghost">Cancel</a>
+    <button type="submit" class="btn-primary-flat">{{ $submitLabel }}</button>
 </div>
 
 @push('scripts')
