@@ -30,7 +30,7 @@ class DashboardController extends Controller
         $schools = School::query();
         $students = Student::query();
         $reports = StudentReport::query();
-        $teachers = User::where('role', 'teacher');
+        $teachers = User::role('teacher');
 
         if (!$isAdmin) {
             $schools->where('id', $user->school_id);

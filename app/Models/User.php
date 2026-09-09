@@ -7,17 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
         'username',
         'email',
         'password',
-        'role',
         'school_id',
         'phone',
         'address',
@@ -42,19 +42,31 @@ class User extends Authenticatable
         return $this->belongsTo(School::class);
     }
 
+    /**
+     * Roles live in spatie/laravel-permission; these three stay as shorthands
+     * because 'admin' also decides school scoping, not just what is permitted.
+     */
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->hasRole('admin');
     }
 
     public function isTeacher()
     {
-        return $this->role === 'teacher';
+        return $this->hasRole('teacher');
     }
 
     public function isStaff()
     {
-        return $this->role === 'staff';
+        return $this->hasRole('staff');
+    }
+
+    /**
+     * The role shown in the UI. A user normally holds one.
+     */
+    public function getRoleNameAttribute(): ?string
+    {
+        return $this->roles->first()?->name;
     }
 
     public function canManageSchool($schoolId = null)

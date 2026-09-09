@@ -3,7 +3,9 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Grading System</h2>
+    @can('grades.create')
     <a href="{{ route('grades.create') }}" class="btn btn-primary">Add Grade</a>
+    @endcan
 </div>
 
 <div class="card">
@@ -29,12 +31,16 @@
                         <td>{{ $grade->marks_from }} - {{ $grade->marks_to }}</td>
                         <td>{{ $grade->remarks }}</td>
                         <td>
+                            @can('grades.update')
                             <a href="{{ route('grades.edit', $grade) }}" class="btn btn-sm btn-warning">Edit</a>
+                            @endcan
+                            @can('grades.delete')
                             <form action="{{ route('grades.destroy', $grade) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach

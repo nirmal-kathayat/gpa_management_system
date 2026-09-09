@@ -1,65 +1,98 @@
 @extends('layouts.app')
 
+@section('title', 'Users - GPA Management System')
+
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>User Management</h2>
-    <a href="{{ route('users.create') }}" class="btn btn-primary">Add User</a>
+<div class="toolbar">
+    <div>
+        <h2 class="toolbar-title">Users</h2>
+        <p class="toolbar-sub">{{ $users->total() }} {{ \Illuminate\Support\Str::plural('account', $users->total()) }} in the system.</p>
+    </div>
+    <div class="toolbar-actions">
+        <a href="{{ route('users.create') }}" class="btn-primary-flat"><i class="fas fa-plus"></i>New User</a>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
+<div class="panel">
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>School</th>
+                    <th>Status</th>
+                    <th class="cell-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($users as $user)
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>School</th>
-                        <th>Status</th>
-                        <th>Last Login</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
                         <td>
-                            <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'info') }}">
-                                {{ ucfirst($user->role) }}
+                            <div class="identity">
+                                <span class="avatar-sm">{{ \Illuminate\Support\Str::of($user->name)->explode(' ')->take(2)->map(fn ($word) => \Illuminate\Support\Str::substr($word, 0, 1))->implode('') }}</span>
+                                <div>
+                                    <div class="cell-strong">{{ $user->name }}</div>
+                                    <div class="identity-sub">{{ '@' . $user->username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="cell-muted">{{ $user->email }}</td>
+                        <td>
+                            @if($user->role_name)
+                                <span class="pill pill-muted">{{ \Illuminate\Support\Str::headline($user->role_name) }}</span>
+                            @else
+                                <span class="pill pill-warning">No role</span>
+                            @endif
+                        </td>
+                        <td class="cell-muted">{{ $user->school->name ?? 'All schools' }}</td>
+                        <td>
+                            <span class="pill {{ $user->is_active ? 'pill-positive' : 'pill-danger' }}">
+                                {{ $user->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
-                        <td>{{ $user->school->name ?? 'N/A' }}</td>
-                        <td>
-                            @if($user->is_active)
-                                <span class="badge bg-success">Active</span>
-                            @else
-                                <span class="badge bg-secondary">Inactive</span>
-                            @endif
-                        </td>
-                        <td>{{ $user->last_login_at?->format('M d, Y H:i') ?? 'Never' }}</td>
-                        <td>
-                            <a href="{{ route('users.show', $user) }}" class="btn btn-sm btn-info">View</a>
-                            <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-warning">Edit</a>
-                            @if($user->id !== auth()->id())
-                                <form action="{{ route('users.destroy', $user) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
-                                </form>
-                            @endif
+                        <td class="cell-actions">
+                            <span class="row-actions">
+                                <a class="icon-action" href="{{ route('users.show', $user) }}" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a class="icon-action" href="{{ route('users.edit', $user) }}" title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                @if($user->id === auth()->id())
+                                    <button type="button" class="icon-action" disabled title="This is your account">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                @else
+                                    <form action="{{ route('users.destroy', $user) }}" method="POST"
+                                          onsubmit="return confirm('Delete {{ $user->name }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="icon-action is-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </span>
                         </td>
                     </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        
-        {{ $users->links() }}
+                @empty
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <i class="fas fa-users"></i>
+                                <p>No users yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
+
+    @if($users->hasPages())
+        <div class="pager">{{ $users->links() }}</div>
+    @endif
 </div>
 @endsection

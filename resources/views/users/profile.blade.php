@@ -98,8 +98,8 @@
                 <div class="row">
                     <div class="col-md-6">
                         <p><strong>Role:</strong> 
-                            <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'info') }}">
-                                {{ ucfirst($user->role) }}
+                            <span class="pill pill-muted">
+                                {{ \Illuminate\Support\Str::headline($user->role_name ?? 'No role') }}
                             </span>
                         </p>
                         <p><strong>School:</strong> {{ $user->school->name ?? 'N/A' }}</p>

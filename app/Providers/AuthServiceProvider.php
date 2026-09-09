@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -23,16 +24,16 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Define Gates for role-based access
-        Gate::define('admin-access', function ($user) {
-            return $user->isAdmin();
+        // Admins pass every permission check, so a newly added permission never
+        // locks the person who has to grant it out of the screen that grants it.
+        // Returning null (not false) lets every other check run normally.
+        Gate::before(function (User $user, string $ability) {
+            return $user->hasRole('admin') ? true : null;
         });
 
-        Gate::define('teacher-access', function ($user) {
-            return $user->isAdmin() || $user->isTeacher();
-        });
-
-        Gate::define('manage-school', function ($user, $schoolId = null) {
+        // School access is a data-ownership question, not a permission, so it
+        // stays a gate of its own alongside Controller::authorizeSchool().
+        Gate::define('manage-school', function (User $user, $schoolId = null) {
             return $user->canManageSchool($schoolId);
         });
     }

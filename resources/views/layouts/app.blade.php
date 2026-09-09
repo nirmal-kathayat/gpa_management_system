@@ -28,6 +28,8 @@
             'schools.*' => 'Schools',
             'users.profile' => 'My Profile',
             'users.*' => 'Users',
+            'roles.*' => 'Roles',
+            'permissions.*' => 'Permissions',
             'subjects.*' => 'Subjects',
             'grades.*' => 'Grade Scale',
             'bulk-import.*' => 'Bulk Import',
@@ -39,25 +41,30 @@
                 break;
             }
         }
-        // Only sections that have a page are listed, so the sidebar never links nowhere.
+        // Each entry is shown only if the signed-in user holds the permission that
+        // guards its route, so the sidebar never links to a 403.
         $navGroups = array_values(array_filter([
             ['label' => null, 'items' => [
                 ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-gauge-high', 'label' => 'Dashboard'],
             ]],
             ['label' => 'Management', 'icon' => 'fa-folder-open', 'items' => array_values(array_filter([
-                $navUser->isAdmin() ? ['route' => 'schools.index', 'match' => 'schools.*', 'icon' => 'fa-school', 'label' => 'Schools'] : null,
-                $navUser->isAdmin() ? ['route' => 'users.index', 'match' => 'users.index', 'icon' => 'fa-users', 'label' => 'Users'] : null,
-                ['route' => 'students.index', 'match' => 'students.*', 'icon' => 'fa-user-graduate', 'label' => 'Students'],
+                $navUser->can('schools.viewAny') ? ['route' => 'schools.index', 'match' => 'schools.*', 'icon' => 'fa-school', 'label' => 'Schools'] : null,
+                $navUser->can('students.viewAny') ? ['route' => 'students.index', 'match' => 'students.*', 'icon' => 'fa-user-graduate', 'label' => 'Students'] : null,
             ]))],
             ['label' => 'Academics', 'icon' => 'fa-book-open', 'items' => array_values(array_filter([
-                $navUser->isAdmin() ? ['route' => 'subjects.index', 'match' => 'subjects.*', 'icon' => 'fa-book', 'label' => 'Subjects'] : null,
-                $navUser->isAdmin() ? ['route' => 'grades.index', 'match' => 'grades.*', 'icon' => 'fa-award', 'label' => 'Grade Scale'] : null,
-                ['route' => 'reports.index', 'match' => 'reports.*', 'icon' => 'fa-file-lines', 'label' => 'Report Cards'],
+                $navUser->can('subjects.viewAny') ? ['route' => 'subjects.index', 'match' => 'subjects.*', 'icon' => 'fa-book', 'label' => 'Subjects'] : null,
+                $navUser->can('grades.viewAny') ? ['route' => 'grades.index', 'match' => 'grades.*', 'icon' => 'fa-award', 'label' => 'Grade Scale'] : null,
+                $navUser->can('reports.viewAny') ? ['route' => 'reports.index', 'match' => 'reports.*', 'icon' => 'fa-file-lines', 'label' => 'Report Cards'] : null,
             ]))],
-            $navUser->isAdmin() ? ['label' => 'Tools', 'icon' => 'fa-screwdriver-wrench', 'items' => [
-                ['route' => 'bulk-import.index', 'match' => 'bulk-import.*', 'icon' => 'fa-upload', 'label' => 'Bulk Import'],
-            ]] : null,
-        ]));
+            ['label' => 'Tools', 'icon' => 'fa-screwdriver-wrench', 'items' => array_values(array_filter([
+                $navUser->can('bulk-import.run') ? ['route' => 'bulk-import.index', 'match' => 'bulk-import.*', 'icon' => 'fa-upload', 'label' => 'Bulk Import'] : null,
+            ]))],
+            ['label' => 'User Management', 'icon' => 'fa-user-shield', 'items' => array_values(array_filter([
+                $navUser->can('users.viewAny') ? ['route' => 'users.index', 'match' => ['users.index', 'users.create', 'users.edit', 'users.show'], 'icon' => 'fa-users', 'label' => 'Users'] : null,
+                $navUser->can('roles.viewAny') ? ['route' => 'roles.index', 'match' => 'roles.*', 'icon' => 'fa-user-tag', 'label' => 'Roles'] : null,
+                $navUser->can('permissions.viewAny') ? ['route' => 'permissions.index', 'match' => 'permissions.*', 'icon' => 'fa-key', 'label' => 'Permissions'] : null,
+            ]))],
+        ], fn ($group) => $group && $group['items']));
     @endphp
 
     <aside class="sidebar no-print" id="sidebar">
@@ -122,7 +129,7 @@
                         <span class="user-avatar"><i class="fas fa-user"></i></span>
                         <span class="d-none d-md-block">
                             <span class="user-name d-block">{{ $navUser->name }}</span>
-                            <span class="user-role d-block">{{ ucfirst($navUser->role) }}</span>
+                            <span class="user-role d-block">{{ \Illuminate\Support\Str::headline($navUser->role_name ?? 'No role') }}</span>
                         </span>
                         <i class="fas fa-chevron-down user-caret"></i>
                     </a>
@@ -187,6 +194,7 @@
             });
         });
     </script>
+    @stack('scripts')
 </body>
 
 </html>

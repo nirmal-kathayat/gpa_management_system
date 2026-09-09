@@ -700,6 +700,508 @@ a:hover {
     color: var(--danger);
 }
 
+/* ---------- Page toolbar ---------- */
+
+.toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toolbar-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.toolbar-sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-ghost:hover {
+    background: var(--page);
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.btn-danger-ghost {
+    border-color: #f0d3d1;
+    color: var(--danger);
+}
+
+.btn-danger-ghost:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.btn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+/* ---------- Data table ---------- */
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.data-table th {
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--page);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    color: var(--ink);
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.data-table tbody tr:hover td {
+    background: #fafbfd;
+}
+
+.data-table .cell-strong {
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.cell-muted {
+    color: var(--muted);
+}
+
+.cell-actions,
+.data-table th.cell-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.row-actions form {
+    display: inline-flex;
+    margin: 0;
+}
+
+.icon-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.icon-action:hover {
+    background: var(--page);
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.icon-action.is-danger:hover {
+    background: var(--danger-bg);
+    border-color: #f0d3d1;
+    color: var(--danger);
+}
+
+.icon-action[disabled] {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.avatar-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.identity-sub {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.pager {
+    padding: 14px 20px;
+    border-top: 1px solid var(--line);
+}
+
+.pager .pagination {
+    margin: 0;
+}
+
+.empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.empty-state i {
+    font-size: 26px;
+    color: #c3ccdb;
+}
+
+.empty-state p {
+    margin: 12px 0 0;
+    font-size: 13px;
+}
+
+/* ---------- Forms ---------- */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+}
+
+.form-field.is-wide {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.form-label .req {
+    color: var(--danger);
+}
+
+.form-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--navy);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    outline: none;
+}
+
+textarea.form-input {
+    height: auto;
+    padding: 11px 14px;
+    resize: vertical;
+}
+
+select.form-input {
+    /* Native arrow is hidden so the control matches the text inputs. */
+    appearance: none;
+    padding-right: 38px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%235c6b82' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6.5L8 10.5L12 6.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    background-size: 15px;
+}
+
+.form-input:focus {
+    border-color: var(--primary);
+}
+
+.form-input.is-invalid {
+    border-color: var(--danger);
+}
+
+.form-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.form-error {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--danger);
+}
+
+.form-section-title {
+    grid-column: 1 / -1;
+    margin: 6px 0 -4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* Square check used by every checkbox on the admin screens. */
+.check {
+    appearance: none;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 1px solid #c6d0da;
+    border-radius: 5px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.check:checked {
+    background: var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3.2 3.2L13 5'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
+    border-color: var(--primary);
+}
+
+.check:indeterminate {
+    background: var(--primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
+    border-color: var(--primary);
+}
+
+.check[disabled] {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+/* ---------- Permission matrix ---------- */
+
+.perm-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--soft);
+    margin-bottom: 20px;
+}
+
+.perm-summary-text {
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.perm-summary-text strong {
+    color: var(--navy);
+}
+
+.perm-group + .perm-group {
+    margin-top: 26px;
+}
+
+.perm-group-title {
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.perm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+    gap: 16px;
+}
+
+.perm-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    overflow: hidden;
+}
+
+.perm-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--page);
+}
+
+.perm-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--soft);
+    color: var(--primary);
+    font-size: 12px;
+}
+
+.perm-card-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.perm-card-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.perm-card-body {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 6px 8px;
+}
+
+.perm-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.perm-check:hover {
+    background: var(--page);
+}
+
+.perm-check .perm-code {
+    margin-left: auto;
+    font-size: 11px;
+    color: #9aa5b6;
+}
+
+.perm-card.is-readonly .perm-check {
+    cursor: default;
+}
+
+.perm-card.is-readonly .perm-check:hover {
+    background: transparent;
+}
+
+/* Roles that a permission is granted to, on the read-only Permissions screen. */
+.role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ---------- Detail list ---------- */
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+}
+
+.detail-item.is-wide {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.detail-value {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--navy);
+}
+
+@media (max-width: 700px) {
+    .form-grid,
+    .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 /* ---------- Report card (print fidelity - unchanged) ---------- */
 
 .report-card {

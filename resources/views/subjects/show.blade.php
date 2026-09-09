@@ -7,7 +7,9 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4>Subject Details - {{ $subject->name }}</h4>
                 <div>
+                    @can('subjects.update')
                     <a href="{{ route('subjects.edit', $subject) }}" class="btn btn-warning btn-sm">Edit</a>
+                    @endcan
                     <a href="{{ route('subjects.index') }}" class="btn btn-secondary btn-sm">Back</a>
                 </div>
             </div>

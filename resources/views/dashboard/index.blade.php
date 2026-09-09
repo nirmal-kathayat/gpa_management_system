@@ -11,15 +11,15 @@
                 {{ now()->format('l, F j, Y') }}@if($academicYear) &middot; Academic Year {{ $academicYear }}@endif
             </div>
         </div>
-        @if($isAdmin)
+        @can('schools.create')
             <a class="btn-primary-flat" href="{{ route('schools.create') }}">
                 <i class="fas fa-plus"></i>Add School
             </a>
-        @else
+        @elsecan('reports.create')
             <a class="btn-primary-flat" href="{{ route('reports.create') }}">
                 <i class="fas fa-plus"></i>New Report Card
             </a>
-        @endif
+        @endcan
     </div>
 
     <div class="stat-grid">

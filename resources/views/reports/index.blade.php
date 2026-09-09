@@ -8,9 +8,11 @@
             <h1 class="h3 mb-0 text-gray-800 fw-bold">Student Reports</h1>
             <p class="text-muted mb-0">Manage and view all student academic reports</p>
         </div>
+        @can('reports.create')
         <a href="{{ route('reports.create') }}" class="btn btn-primary btn-lg shadow-sm">
             <i class="fas fa-plus me-2"></i>Create New Report
         </a>
+        @endcan
     </div>
 
     <!-- Statistics Cards -->
@@ -193,17 +195,21 @@
                                         title="View Report">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    @can('reports.update')
                                     <a href="{{ route('reports.edit', $report) }}"
                                         class="btn btn-warning btn-sm text-white"
                                         title="Edit Report">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    @endcan
+                                    @can('reports.pdf')
                                     <a href="{{ route('reports.pdf', $report) }}"
                                         class="btn btn-danger btn-sm"
                                         title="Download PDF">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
-                                    @if(auth()->user()->isAdmin())
+                                    @endcan
+                                    @can('reports.delete')
                                     <button type="button"
                                         class="btn btn-outline-danger btn-sm"
                                         data-bs-toggle="modal"
@@ -211,7 +217,7 @@
                                         title="Delete Report">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                    @endif
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -222,9 +228,11 @@
                                     <i class="fas fa-file-alt fa-3x mb-3"></i>
                                     <h5>No Reports Found</h5>
                                     <p>There are no student reports available yet.</p>
+                                    @can('reports.create')
                                     <a href="{{ route('reports.create') }}" class="btn btn-primary">
                                         <i class="fas fa-plus me-2"></i>Create First Report
                                     </a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -246,7 +254,7 @@
     </div>
 </div>
 
-@if(auth()->user()->isAdmin())
+@can('reports.delete')
 @foreach($reports as $report)
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal{{ $report->id }}" tabindex="-1" aria-hidden="true">
@@ -306,7 +314,7 @@
     </div>
 </div>
 @endforeach
-@endif
+@endcan
 
 <style>
     .border-left-primary {

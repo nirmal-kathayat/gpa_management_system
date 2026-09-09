@@ -7,25 +7,22 @@ use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('admin')->except(['profile', 'updateProfile']);
-    }
-
     public function index()
     {
-        $users = User::with('school')->paginate(10);
+        $users = User::with(['school', 'roles'])->orderBy('name')->paginate(10);
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        $schools = School::all();
-        return view('users.create', compact('schools'));
+        return view('users.create', [
+            'schools' => School::orderBy('name')->get(),
+            'roles' => $this->assignableRoles(),
+        ]);
     }
 
     public function store(Request $request)
@@ -35,31 +32,39 @@ class UserController extends Controller
             'username' => 'required|string|max:255|alpha_dash|unique:users',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,teacher,staff',
+            'role' => ['required', Rule::exists('roles', 'name')->where('guard_name', 'web')],
             'school_id' => 'nullable|exists:schools,id',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'is_active' => 'boolean'
         ]);
 
+        $role = $validated['role'];
+        unset($validated['role']);
+
         $validated['password'] = Hash::make($validated['password']);
         $validated['is_active'] = $request->has('is_active');
 
-        User::create($validated);
+        $user = User::create($validated);
+        $user->syncRoles($role);
 
         return redirect()->route('users.index')->with('success', 'User created successfully!');
     }
 
     public function show(User $user)
     {
-        $user->load('school');
+        $user->load(['school', 'roles.permissions']);
         return view('users.show', compact('user'));
     }
 
     public function edit(User $user)
     {
-        $schools = School::all();
-        return view('users.edit', compact('user', 'schools'));
+        return view('users.edit', [
+            'user' => $user,
+            'schools' => School::orderBy('name')->get(),
+            'roles' => $this->assignableRoles(),
+            'isSelf' => $user->id === auth()->id(),
+        ]);
     }
 
     public function update(Request $request, User $user)
@@ -68,7 +73,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'username' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => 'required|in:admin,teacher,staff',
+            'role' => ['required', Rule::exists('roles', 'name')->where('guard_name', 'web')],
             'school_id' => 'nullable|exists:schools,id',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
@@ -82,9 +87,23 @@ class UserController extends Controller
             $validated['password'] = Hash::make($request->password);
         }
 
+        $role = $validated['role'];
+        unset($validated['role']);
+
         $validated['is_active'] = $request->has('is_active');
 
+        // Changing your own role or switching yourself off would end the session
+        // you are working in, so those two fields are ignored for your own row.
+        if ($user->id === auth()->id()) {
+            $validated['is_active'] = $user->is_active;
+            $role = null;
+        }
+
         $user->update($validated);
+
+        if ($role !== null) {
+            $user->syncRoles($role);
+        }
 
         return redirect()->route('users.index')->with('success', 'User updated successfully!');
     }
@@ -97,6 +116,15 @@ class UserController extends Controller
 
         $user->delete();
         return redirect()->route('users.index')->with('success', 'User deleted successfully!');
+    }
+
+    /**
+     * Every role can be handed out; 'admin' included, since only an admin can
+     * reach this screen in the first place.
+     */
+    private function assignableRoles()
+    {
+        return Role::where('guard_name', 'web')->orderBy('name')->get();
     }
 
     public function profile()

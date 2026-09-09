@@ -3,7 +3,9 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Subjects</h2>
+    @can('subjects.create')
     <a href="{{ route('subjects.create') }}" class="btn btn-primary">Add Subject</a>
+    @endcan
 </div>
 
 <div class="card">
@@ -38,12 +40,16 @@
                         </td>
                         <td>
                             <a href="{{ route('subjects.show', $subject) }}" class="btn btn-sm btn-info">View</a>
+                            @can('subjects.update')
                             <a href="{{ route('subjects.edit', $subject) }}" class="btn btn-sm btn-warning">Edit</a>
+                            @endcan
+                            @can('subjects.delete')
                             <form action="{{ route('subjects.destroy', $subject) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach

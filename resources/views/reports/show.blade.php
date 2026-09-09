@@ -5,7 +5,9 @@
     <div class="d-flex justify-content-between align-items-center">
         <h2>Student Report Card</h2>
         <div>
+            @can('reports.pdf')
             <a href="{{ route('reports.pdf', $report) }}" class="btn btn-danger">Download PDF</a>
+            @endcan
             <button onclick="window.print()" class="btn btn-primary">Print</button>
             <a href="{{ route('reports.index') }}" class="btn btn-secondary">Back</a>
         </div>

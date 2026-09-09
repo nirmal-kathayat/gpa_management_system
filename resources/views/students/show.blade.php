@@ -7,7 +7,9 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4>Student Details</h4>
                 <div>
+                    @can('students.update')
                     <a href="{{ route('students.edit', $student) }}" class="btn btn-warning btn-sm">Edit</a>
+                    @endcan
                     <a href="{{ route('students.index') }}" class="btn btn-secondary btn-sm">Back</a>
                 </div>
             </div>
@@ -73,9 +75,11 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
+                    @can('reports.create')
                     <a href="{{ route('reports.create') }}?student_id={{ $student->id }}" class="btn btn-primary">
                         Create Report Card
                     </a>
+                    @endcan
                     <button class="btn btn-info" onclick="printStudentInfo()">
                         Print Student Info
                     </button>

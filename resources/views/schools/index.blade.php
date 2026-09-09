@@ -3,7 +3,9 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Schools</h2>
+    @can('schools.create')
     <a href="{{ route('schools.create') }}" class="btn btn-primary">Add School</a>
+    @endcan
 </div>
 
 <div class="card">
@@ -34,12 +36,16 @@
                         </td>
                         <td>
                             <a href="{{ route('schools.show', $school) }}" class="btn btn-sm btn-info">View</a>
+                            @can('schools.update')
                             <a href="{{ route('schools.edit', $school) }}" class="btn btn-sm btn-warning">Edit</a>
+                            @endcan
+                            @can('schools.delete')
                             <form action="{{ route('schools.destroy', $school) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? This will also delete all students in this school.')">Delete</button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                     @endforeach
