@@ -67,6 +67,9 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
     $resource('schools', SchoolController::class);
     $resource('subjects', SubjectController::class);
     // GradeSystemController has no show(), so no /grades/{grade} route.
+    Route::post('grades/load-standard', [GradeSystemController::class, 'loadStandard'])
+        ->name('grades.load-standard')
+        ->middleware('permission:grades.create');
     $resource('grades', GradeSystemController::class, ['show']);
 
     // User Management

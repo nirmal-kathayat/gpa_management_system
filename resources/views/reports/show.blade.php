@@ -159,8 +159,8 @@
                     <tr>
                         <th>Letter Grade</th>
                         <th>Grade Point</th>
-                        <th>Equivalent Marks</th>
-                        <th>Remarks</th>
+                        <th>Percentage</th>
+                        <th>Description</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,8 +168,8 @@
                     <tr>
                         <td>{{ $grade->letter_grade }}</td>
                         <td>{{ $grade->grade_point }}</td>
-                        <td>{{ $grade->marks_from }} to {{ $grade->marks_to }}</td>
-                        <td>{{ $grade->remarks }}</td>
+                        <td>{{ $grade->marks_from }} to {{ $grade->marks_to }}%</td>
+                        <td>{{ $grade->description }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -177,20 +177,22 @@
         </div>
         
         <div class="col-md-6">
-            <h6>Division System</h6>
+            <h6>Result</h6>
             <table class="report-table">
                 <thead>
                     <tr>
-                        <th>Division</th>
-                        <th>Equivalent Marks</th>
-                        <th>Remarks</th>
+                        <th>Result</th>
+                        <th>Final GPA</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>1st Division</td><td>60 to below 80</td><td>Very Good</td></tr>
-                    <tr><td>2nd Division</td><td>50 to below 60</td><td>Good</td></tr>
-                    <tr><td>3rd Division</td><td>35 to below 50</td><td>Partially Acceptable</td></tr>
-                    <tr><td>Fail</td><td>0 to below 35</td><td>Insufficient</td></tr>
+                    @foreach(\App\Support\GradeCalculator::RESULT_BANDS as $band)
+                    <tr>
+                        <td>{{ \Illuminate\Support\Str::headline(strtolower($band['status'])) }}</td>
+                        <td>GPA {{ number_format($band['min'], 1) }} and above</td>
+                    </tr>
+                    @endforeach
+                    <tr><td>Failed</td><td>Any subject not graded</td></tr>
                 </tbody>
             </table>
         </div>

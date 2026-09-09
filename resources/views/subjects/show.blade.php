@@ -171,7 +171,7 @@
                             <tr>
                                 <td class="cell-strong">{{ $grade->letter_grade }}</td>
                                 <td>{{ $grade->marks_from }} &ndash; {{ $grade->marks_to }}</td>
-                                <td>{{ $grade->remarks ?: '—' }}</td>
+                                <td>{{ $grade->description ?: '—' }}</td>
                             </tr>
                         @endforeach
                     </tbody>

@@ -7,6 +7,7 @@ use App\Models\StudentReport;
 use App\Models\StudentMark;
 use App\Models\Subject;
 use App\Models\GradeSystem;
+use App\Support\GradeCalculator;
 use App\Support\TableResponse;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -117,121 +118,16 @@ class ReportController extends Controller
 
         $this->authorizeStudent((int) $validated['student_id']);
 
-        // Calculate GPA and create marks records
-        $totalGradePoints = 0;
-        $totalSubjects = 0;
-        $hasFailedSubject = false;
+        $result = $this->gradeMarks(
+            (int) $validated['student_id'],
+            $validated['academic_year'],
+            $validated['marks']
+        );
 
-        foreach ($validated['marks'] as $markData) {
-            $examTypes = ['first_terminal', 'second_terminal', 'final_terminal', 'pre_board'];
-
-            foreach ($examTypes as $examType) {
-                $theoryKey = $examType . '_th';
-                $practicalKey = $examType . '_pr';
-
-                if (isset($markData[$theoryKey]) || isset($markData[$practicalKey])) {
-                    $theoryMarks = $markData[$theoryKey] ?? 0;
-                    $practicalMarks = $markData[$practicalKey] ?? 0;
-                    $totalMarks = $theoryMarks + $practicalMarks;
-
-                    // Convert total marks to percentage if it exceeds 100
-                    $percentageMarks = $totalMarks;
-                    if ($totalMarks > 100) {
-                        $percentageMarks = ($totalMarks / 200) * 100;
-                    }
-
-                    $grade = GradeSystem::getGradeByMarks($percentageMarks);
-
-                    // Handle case where no grade is found
-                    if (!$grade) {
-                        $grade = GradeSystem::where('marks_from', '<=', $percentageMarks)
-                            ->orderBy('marks_from', 'desc')
-                            ->first();
-
-                        if (!$grade) {
-                            $grade = GradeSystem::orderBy('marks_from', 'asc')->first();
-                        }
-
-                        if (!$grade) {
-                            $letterGrade = 'NG';
-                            $gradePoint = 0;
-                        } else {
-                            $letterGrade = $grade->letter_grade;
-                            $gradePoint = $grade->grade_point;
-                        }
-                    } else {
-                        $letterGrade = $grade->letter_grade;
-                        $gradePoint = $grade->grade_point;
-                    }
-
-                    // Check if this is a failed grade (NG, F, or grade point < 2.0)
-                    if ($letterGrade === 'NG' || $letterGrade === 'F' || $gradePoint < 2.0) {
-                        $hasFailedSubject = true;
-                        $letterGrade = 'NG'; // Force to NG for failed subjects
-                        $gradePoint = 0;
-                    }
-
-                    StudentMark::create([
-                        'student_id' => $validated['student_id'],
-                        'subject_id' => $markData['subject_id'],
-                        'exam_type' => $examType,
-                        'theory_marks' => $theoryMarks,
-                        'practical_marks' => $practicalMarks,
-                        'total_marks' => $totalMarks,
-                        'letter_grade' => $letterGrade,
-                        'grade_point' => $gradePoint,
-                        'academic_year' => $validated['academic_year']
-                    ]);
-
-                    if ($examType === 'final_terminal') {
-                        if (!($letterGrade === 'NG' || $letterGrade === 'F' || $gradePoint < 2.0)) {
-                            $totalGradePoints += $gradePoint;
-                        }
-                        $totalSubjects++;
-                    }
-                }
-            }
-        }
-
-        // Calculate result based on failure status
-        if ($hasFailedSubject) {
-            $finalGpa = 0.00;
-            $finalGradeLetter = 'NG';
-            $resultStatus = 'FAILED';
-            $resultRemarks = 'Student has failed in one or more subjects. Needs improvement.';
-        } else {
-            $finalGpa = $totalSubjects > 0 ? round($totalGradePoints / $totalSubjects, 2) : 0;
-
-            $finalGrade = GradeSystem::where('grade_point', '<=', $finalGpa)
-                ->orderBy('grade_point', 'desc')
-                ->first();
-
-            if (!$finalGrade) {
-                $gpaPercentage = ($finalGpa / 4.0) * 100;
-                $finalGrade = GradeSystem::where('marks_from', '<=', $gpaPercentage)
-                    ->where('marks_to', '>=', $gpaPercentage)
-                    ->first();
-            }
-
-            $finalGradeLetter = $finalGrade ? $finalGrade->letter_grade : 'NG';
-
-            if ($finalGpa >= 3.5) {
-                $resultStatus = 'PASSED WITH DISTINCTION';
-                $resultRemarks = 'Excellent performance. Keep up the good work!';
-            } elseif ($finalGpa >= 3.0) {
-                $resultStatus = 'PASSED WITH FIRST DIVISION';
-                $resultRemarks = 'Very good performance. Well done!';
-            } elseif ($finalGpa >= 2.5) {
-                $resultStatus = 'PASSED WITH SECOND DIVISION';
-                $resultRemarks = 'Good performance. Continue to improve.';
-            } elseif ($finalGpa >= 2.0) {
-                $resultStatus = 'PASSED WITH THIRD DIVISION';
-                $resultRemarks = 'Satisfactory performance. More effort needed.';
-            } else {
-                $resultStatus = 'FAILED';
-                $resultRemarks = 'Needs significant improvement in studies.';
-            }
-        }
+        $finalGpa = $result['gpa'];
+        $finalGradeLetter = $result['grade'];
+        $resultStatus = $result['status'];
+        $resultRemarks = $result['remarks'];
 
         StudentReport::create([
             'student_id' => $validated['student_id'],
@@ -257,6 +153,88 @@ class ReportController extends Controller
         return redirect()->route('reports.index')->with('success', 'Report created successfully!');
     }
 
+    /**
+     * Stores every mark on the form and works out the final result.
+     *
+     * The scale decides the grade: a mark is turned into a percentage against
+     * that subject's own full marks, and a subject counts as failed when its
+     * band says so or when the mark is below the subject's pass mark. Only the
+     * final terminal counts toward the GPA.
+     */
+    private function gradeMarks(int $studentId, string $academicYear, array $marks): array
+    {
+        $calculator = new GradeCalculator();
+        $subjects = Subject::whereIn('id', array_column($marks, 'subject_id'))->get()->keyBy('id');
+
+        $examTypes = ['first_terminal', 'second_terminal', 'final_terminal', 'pre_board'];
+
+        $totalGradePoints = 0;
+        $totalSubjects = 0;
+        $hasFailedSubject = false;
+
+        foreach ($marks as $markData) {
+            $subject = $subjects->get($markData['subject_id']);
+            $fullMarks = (float) ($subject->full_marks ?? 100);
+            $passMarks = $subject?->pass_marks !== null ? (float) $subject->pass_marks : null;
+
+            foreach ($examTypes as $examType) {
+                $theoryKey = $examType.'_th';
+                $practicalKey = $examType.'_pr';
+
+                if (! isset($markData[$theoryKey]) && ! isset($markData[$practicalKey])) {
+                    continue;
+                }
+
+                $theoryMarks = (float) ($markData[$theoryKey] ?? 0);
+                $practicalMarks = (float) ($markData[$practicalKey] ?? 0);
+                $totalMarks = $theoryMarks + $practicalMarks;
+
+                $band = $calculator->forMarks($totalMarks, $fullMarks);
+                $failed = $calculator->fails($band, $totalMarks, $passMarks);
+
+                StudentMark::create([
+                    'student_id' => $studentId,
+                    'subject_id' => $markData['subject_id'],
+                    'exam_type' => $examType,
+                    'theory_marks' => $theoryMarks,
+                    'practical_marks' => $practicalMarks,
+                    'total_marks' => $totalMarks,
+                    'letter_grade' => $band?->letter_grade ?? 'NG',
+                    'grade_point' => $failed ? 0 : ($band?->grade_point ?? 0),
+                    'academic_year' => $academicYear,
+                ]);
+
+                // Only the final terminal decides the year.
+                if ($examType !== 'final_terminal') {
+                    continue;
+                }
+
+                $totalSubjects++;
+
+                if ($failed) {
+                    $hasFailedSubject = true;
+                } else {
+                    $totalGradePoints += $band->grade_point;
+                }
+            }
+        }
+
+        $gpa = $hasFailedSubject || $totalSubjects === 0
+            ? 0.0
+            : round($totalGradePoints / $totalSubjects, 2);
+
+        $result = $calculator->resultFor($gpa, $hasFailedSubject);
+
+        return [
+            'gpa' => $gpa,
+            'grade' => $hasFailedSubject
+                ? ($calculator->scale()->firstWhere('is_failing', true)?->letter_grade ?? 'NG')
+                : ($calculator->forGradePoint($gpa)?->letter_grade ?? 'NG'),
+            'status' => $result['status'],
+            'remarks' => $result['remarks'],
+        ];
+    }
+
     public function show(StudentReport $report)
     {
         $this->authorizeReport($report);
@@ -269,7 +247,7 @@ class ReportController extends Controller
             ->groupBy(['subject_id', 'exam_type']);
 
         $subjects = Subject::where('is_active', true)->get();
-        $gradeSystem = GradeSystem::all();
+        $gradeSystem = GradeSystem::active()->ordered()->get();
 
         return view('reports.show', compact('report', 'marks', 'subjects', 'gradeSystem'));
     }
@@ -333,118 +311,16 @@ class ReportController extends Controller
                 ->where('academic_year', $report->academic_year)
                 ->delete();
 
-            $totalGradePoints = 0;
-            $totalSubjects = 0;
-            $hasFailedSubject = false;
+            $result = $this->gradeMarks(
+                (int) $validated['student_id'],
+                $validated['academic_year'],
+                $validated['marks']
+            );
 
-            foreach ($validated['marks'] as $markData) {
-                $examTypes = ['first_terminal', 'second_terminal', 'final_terminal', 'pre_board'];
-
-                foreach ($examTypes as $examType) {
-                    $theoryKey = $examType . '_th';
-                    $practicalKey = $examType . '_pr';
-
-                    if (isset($markData[$theoryKey]) || isset($markData[$practicalKey])) {
-                        $theoryMarks = $markData[$theoryKey] ?? 0;
-                        $practicalMarks = $markData[$practicalKey] ?? 0;
-                        $totalMarks = $theoryMarks + $practicalMarks;
-
-                        $percentageMarks = $totalMarks;
-                        if ($totalMarks > 100) {
-                            $percentageMarks = ($totalMarks / 200) * 100;
-                        }
-
-                        $grade = GradeSystem::getGradeByMarks($percentageMarks);
-
-                        if (!$grade) {
-                            $grade = GradeSystem::where('marks_from', '<=', $percentageMarks)
-                                ->orderBy('marks_from', 'desc')
-                                ->first();
-
-                            if (!$grade) {
-                                $grade = GradeSystem::orderBy('marks_from', 'asc')->first();
-                            }
-
-                            if (!$grade) {
-                                $letterGrade = 'NG';
-                                $gradePoint = 0;
-                            } else {
-                                $letterGrade = $grade->letter_grade;
-                                $gradePoint = $grade->grade_point;
-                            }
-                        } else {
-                            $letterGrade = $grade->letter_grade;
-                            $gradePoint = $grade->grade_point;
-                        }
-
-                        // Check if this is a failed grade
-                        if ($letterGrade === 'NG' || $letterGrade === 'F' || $gradePoint < 2.0) {
-                            $hasFailedSubject = true;
-                            $letterGrade = 'NG';
-                            $gradePoint = 0;
-                        }
-
-                        StudentMark::create([
-                            'student_id' => $validated['student_id'],
-                            'subject_id' => $markData['subject_id'],
-                            'exam_type' => $examType,
-                            'theory_marks' => $theoryMarks,
-                            'practical_marks' => $practicalMarks,
-                            'total_marks' => $totalMarks,
-                            'letter_grade' => $letterGrade,
-                            'grade_point' => $gradePoint,
-                            'academic_year' => $validated['academic_year']
-                        ]);
-
-                        if ($examType === 'final_terminal') {
-                            if (!($letterGrade === 'NG' || $letterGrade === 'F' || $gradePoint < 2.0)) {
-                                $totalGradePoints += $gradePoint;
-                            }
-                            $totalSubjects++;
-                        }
-                    }
-                }
-            }
-
-            // Calculate result based on failure status
-            if ($hasFailedSubject) {
-                $finalGpa = 0.00;
-                $finalGradeLetter = 'NG';
-                $resultStatus = 'FAILED';
-                $resultRemarks = 'Student has failed in one or more subjects. Needs improvement.';
-            } else {
-                $finalGpa = $totalSubjects > 0 ? round($totalGradePoints / $totalSubjects, 2) : 0;
-
-                $finalGrade = GradeSystem::where('grade_point', '<=', $finalGpa)
-                    ->orderBy('grade_point', 'desc')
-                    ->first();
-
-                if (!$finalGrade) {
-                    $gpaPercentage = ($finalGpa / 4.0) * 100;
-                    $finalGrade = GradeSystem::where('marks_from', '<=', $gpaPercentage)
-                        ->where('marks_to', '>=', $gpaPercentage)
-                        ->first();
-                }
-
-                $finalGradeLetter = $finalGrade ? $finalGrade->letter_grade : 'NG';
-
-                if ($finalGpa >= 3.5) {
-                    $resultStatus = 'PASSED WITH DISTINCTION';
-                    $resultRemarks = 'Excellent performance. Keep up the good work!';
-                } elseif ($finalGpa >= 3.0) {
-                    $resultStatus = 'PASSED WITH FIRST DIVISION';
-                    $resultRemarks = 'Very good performance. Well done!';
-                } elseif ($finalGpa >= 2.5) {
-                    $resultStatus = 'PASSED WITH SECOND DIVISION';
-                    $resultRemarks = 'Good performance. Continue to improve.';
-                } elseif ($finalGpa >= 2.0) {
-                    $resultStatus = 'PASSED WITH THIRD DIVISION';
-                    $resultRemarks = 'Satisfactory performance. More effort needed.';
-                } else {
-                    $resultStatus = 'FAILED';
-                    $resultRemarks = 'Needs significant improvement in studies.';
-                }
-            }
+            $finalGpa = $result['gpa'];
+            $finalGradeLetter = $result['grade'];
+            $resultStatus = $result['status'];
+            $resultRemarks = $result['remarks'];
 
             $report->update([
                 'student_id' => $validated['student_id'],
@@ -489,7 +365,7 @@ class ReportController extends Controller
             ->groupBy(['subject_id', 'exam_type']);
 
         $subjects = Subject::where('is_active', true)->get();
-        $gradeSystem = GradeSystem::all();
+        $gradeSystem = GradeSystem::active()->ordered()->get();
 
         $pdf = Pdf::loadView('reports.pdf', compact('report', 'marks', 'subjects', 'gradeSystem'));
 

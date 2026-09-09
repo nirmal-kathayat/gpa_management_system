@@ -135,15 +135,15 @@
     <h5>Grading System</h5>
     <table class="report-table" style="width: 48%; float: left;">
         <thead>
-            <tr><th>Letter Grade</th><th>Grade Point</th><th>Marks</th><th>Remarks</th></tr>
+            <tr><th>Letter Grade</th><th>Grade Point</th><th>Percentage</th><th>Description</th></tr>
         </thead>
         <tbody>
             @foreach($gradeSystem as $grade)
             <tr>
                 <td>{{ $grade->letter_grade }}</td>
                 <td>{{ $grade->grade_point }}</td>
-                <td>{{ $grade->marks_from }}-{{ $grade->marks_to }}</td>
-                <td>{{ $grade->remarks }}</td>
+                <td>{{ $grade->marks_from }}-{{ $grade->marks_to }}%</td>
+                <td>{{ $grade->description }}</td>
             </tr>
             @endforeach
         </tbody>
@@ -151,13 +151,16 @@
 
     <table class="report-table" style="width: 48%; float: right;">
         <thead>
-            <tr><th>Division</th><th>Marks</th><th>Remarks</th></tr>
+            <tr><th>Result</th><th>Final GPA</th></tr>
         </thead>
         <tbody>
-            <tr><td>1st Division</td><td>60-79</td><td>Very Good</td></tr>
-            <tr><td>2nd Division</td><td>50-59</td><td>Good</td></tr>
-            <tr><td>3rd Division</td><td>35-49</td><td>Acceptable</td></tr>
-            <tr><td>Fail</td><td>0-34</td><td>Insufficient</td></tr>
+            @foreach(\App\Support\GradeCalculator::RESULT_BANDS as $band)
+            <tr>
+                <td>{{ \Illuminate\Support\Str::headline(strtolower($band['status'])) }}</td>
+                <td>{{ number_format($band['min'], 1) }} and above</td>
+            </tr>
+            @endforeach
+            <tr><td>Failed</td><td>Any subject not graded</td></tr>
         </tbody>
     </table>
 

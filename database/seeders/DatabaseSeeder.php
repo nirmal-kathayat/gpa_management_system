@@ -13,7 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(RolePermissionSeeder::class);
+        $this->call([
+            RolePermissionSeeder::class,
+            GradeScaleSeeder::class,
+        ]);
 
         $admin = User::updateOrCreate(
             ['username' => 'admin'],

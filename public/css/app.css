@@ -1569,6 +1569,22 @@ input[type="file"].form-input::file-selector-button:hover {
     gap: 20px;
 }
 
+.info-grid.is-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rule-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+}
+
+.rule-list li + li {
+    margin-top: 6px;
+}
+
 .info-col {
     display: flex;
     flex-direction: column;
@@ -1794,7 +1810,8 @@ input[type="file"].form-input::file-selector-button:hover {
 }
 
 @media (max-width: 1200px) {
-    .info-grid {
+    .info-grid,
+    .info-grid.is-two {
         grid-template-columns: minmax(0, 1fr);
     }
 
