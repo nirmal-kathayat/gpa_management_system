@@ -191,15 +191,74 @@
 }
 
 /* ── Action buttons ──
-   Separate rounded buttons rather than Bootstrap's joined group. */
+   Bordered icon buttons rather than Bootstrap's solid fills, which are far too
+   loud repeated three or four times down every row. Each button is a neutral
+   outlined square; the action's colour sits on the icon and only spreads to the
+   border and background on hover. */
 .cq-grid .btn-group {
   display: inline-flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .cq-grid .btn-group > .btn {
-  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 7px;
   font-size: 12px;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1;
+  color: #5c6b82 !important;
+  background: #fff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.cq-grid .btn-group > .btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.cq-grid .btn-group > .btn:focus,
+.cq-grid .btn-group > .btn:active {
+  box-shadow: none !important;
+}
+
+/* View */
+.cq-grid .btn-group > .btn-info {
+  color: #1a3a6b !important;
+}
+
+.cq-grid .btn-group > .btn-info:hover {
+  background: #eef2f8 !important;
+  border-color: #c7d4e8 !important;
+}
+
+/* Edit */
+.cq-grid .btn-group > .btn-primary {
+  color: #2862b8 !important;
+}
+
+.cq-grid .btn-group > .btn-primary:hover {
+  background: #eef4fd !important;
+  border-color: #bcd4f5 !important;
+}
+
+/* Secondary actions, e.g. the report PDF */
+.cq-grid .btn-group > .btn-secondary {
+  color: #5c6b82 !important;
+}
+
+/* Delete */
+.cq-grid .btn-group > .btn-danger {
+  color: #b3261e !important;
+}
+
+.cq-grid .btn-group > .btn-danger:hover {
+  background: #fdeceb !important;
+  border-color: #f2c9c6 !important;
 }
