@@ -1,6 +1,7 @@
 {{--
-    The application shell. Everything visible lives in layouts/partials:
-    sidebar, header (topbar), footer and the shared scripts.
+    The application shell. The three pieces of chrome sit beside this file in
+    layouts/; anything reusable beyond the shell is an anonymous Blade component
+    under resources/views/components.
 --}}
 <!DOCTYPE html>
 <html lang="en">
@@ -22,10 +23,10 @@
 
 <body>
     @auth
-        @include('layouts.partials.sidebar')
+        @include('layouts.sidebar')
 
         <div class="main-content" id="mainContent">
-            @include('layouts.partials.header')
+            @include('layouts.header')
 
             <div class="page-body">
                 @if(session('success'))
@@ -44,8 +45,8 @@
             </div>
         </div>
 
-        @include('layouts.partials.footer')
-        @include('layouts.partials.confirm-dialog')
+        @include('layouts.footer')
+        <x-confirm-dialog />
     @else
         <div class="container py-4">
             @yield('content')
@@ -57,7 +58,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('assets/js/table-helper.js') }}"></script>
     <script src="{{ asset('assets/js/confirm-dialog.js') }}"></script>
-    @include('layouts.partials.scripts')
+    <x-scripts />
     @stack('scripts')
 </body>
 
