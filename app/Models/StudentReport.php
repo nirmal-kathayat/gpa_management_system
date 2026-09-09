@@ -14,6 +14,7 @@ class StudentReport extends Model
         'academic_year',
         'final_gpa',
         'final_grade',
+        'position',
         'result_status',
         'result_remarks',
         'attendance_days',
@@ -35,9 +36,27 @@ class StudentReport extends Model
         'final_gpa' => 'decimal:2'
     ];
 
+    /**
+     * SQLite does not enforce a foreign key added by ALTER TABLE ADD COLUMN, so
+     * the cascade on student_marks.student_report_id never fires there. Removing
+     * the marks here covers every path - controller, seeder or console.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $report) {
+            $report->marks()->delete();
+        });
+    }
+
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    /** Marks belong to the report card, not to a student and a year. */
+    public function marks()
+    {
+        return $this->hasMany(StudentMark::class, 'student_report_id');
     }
 
     public function getAttendancePercentageAttribute()

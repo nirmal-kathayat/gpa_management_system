@@ -31,6 +31,50 @@ class StudentController extends Controller
     }
 
     /**
+     * Students for the Select2 picker on the report form: searched and paged on
+     * the server, so a school with thousands of students never ships them all to
+     * the browser.
+     */
+    public function options(Request $request)
+    {
+        $perPage = 30;
+        $page = max(1, (int) $request->input('page', 1));
+        $term = trim((string) $request->input('q', ''));
+
+        $query = auth()->user()->getAccessibleStudents()->with('school:id,name');
+
+        if ($term !== '') {
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', '%'.$term.'%')
+                    ->orWhere('roll_number', 'like', '%'.$term.'%')
+                    ->orWhere('symbol_number', 'like', '%'.$term.'%');
+            });
+        }
+
+        $total = (clone $query)->count();
+
+        $students = $query->orderBy('class')->orderBy('section')->orderBy('roll_number')
+            ->forPage($page, $perPage)->get();
+
+        return response()->json([
+            'results' => $students->map(fn ($student) => [
+                'id' => $student->id,
+                'text' => static::studentLabel($student),
+                'school' => $student->school->name,
+                'inactive' => ! $student->is_active,
+            ]),
+            'pagination' => ['more' => $page * $perPage < $total],
+        ]);
+    }
+
+    /** The one label format, so the picker and the pre-selected option match. */
+    public static function studentLabel($student): string
+    {
+        return $student->name.' — Class '.$student->class.' '.$student->section
+            .' (Roll '.$student->roll_number.')';
+    }
+
+    /**
      * JSON rows for the TableHelper grid on the index page.
      */
     public function list(Request $request)

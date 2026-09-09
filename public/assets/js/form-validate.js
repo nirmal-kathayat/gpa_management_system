@@ -93,8 +93,15 @@
 
             event.preventDefault();
             event.stopPropagation();
-            invalid[0].focus();
-            invalid[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+            // A field can be hidden behind a widget (Select2 replaces the
+            // <select>); focus what the person can actually see.
+            var target = invalid[0].offsetParent === null
+                ? (fieldWrap(invalid[0]).querySelector('.select2-selection') || invalid[0])
+                : invalid[0];
+
+            target.focus();
+            target.scrollIntoView({ block: 'center', behavior: 'smooth' });
         });
 
         // Once a field is fixed the message goes, rather than waiting for a resubmit.

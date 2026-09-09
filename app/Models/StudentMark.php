@@ -11,6 +11,7 @@ class StudentMark extends Model
 
     protected $fillable = [
         'student_id',
+        'student_report_id',
         'subject_id',
         'exam_type',
         'theory_marks',
@@ -29,5 +30,10 @@ class StudentMark extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function report()
+    {
+        return $this->belongsTo(StudentReport::class, 'student_report_id');
     }
 }

@@ -57,6 +57,12 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
     Route::get('/profile', [UserController::class, 'profile'])->name('users.profile');
     Route::put('/profile', [UserController::class, 'updateProfile'])->name('users.profile.update');
 
+    // Before the resource, so /students/options is not read as a student id.
+    // Anyone who can build a report needs it, not only those who manage students.
+    Route::get('students/options', [StudentController::class, 'options'])
+        ->name('students.options')
+        ->middleware('permission:students.viewAny|reports.create|reports.update');
+
     $resource('students', StudentController::class);
 
     $resource('reports', ReportController::class);

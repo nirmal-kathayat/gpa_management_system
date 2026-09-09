@@ -6,6 +6,12 @@
     $report = $report ?? null;
     $existingMarks = $existingMarks ?? [];
 
+    // After a failed submit the picker has to come back on whatever was chosen.
+    $chosenId = old('student_id', $report?->student_id ?? ($selectedStudent ?? null)?->id);
+    $chosenStudent = $chosenId
+        ? ($report?->student_id == $chosenId ? $report->student : \App\Models\Student::find($chosenId))
+        : null;
+
     $terms = [
         'first_terminal' => 'First Terminal',
         'second_terminal' => 'Second Terminal',
@@ -36,15 +42,15 @@
     <div class="form-grid">
         <div class="form-field">
             <label class="form-label" for="student_id">Student <span class="req">*</span></label>
-            <select id="student_id" name="student_id" required
+            {{-- Students are searched over AJAX, so only the chosen one is rendered. --}}
+            <select id="student_id" name="student_id" required data-student-select
                     class="form-input @error('student_id') is-invalid @enderror">
-                <option value="">Select student</option>
-                @foreach($students as $student)
-                    <option value="{{ $student->id }}"
-                        {{ (string) old('student_id', $report?->student_id) === (string) $student->id ? 'selected' : '' }}>
-                        {{ $student->name }} &mdash; {{ $student->class }} {{ $student->section }} (Roll {{ $student->roll_number }})
+                <option value=""></option>
+                @if($chosenStudent)
+                    <option value="{{ $chosenStudent->id }}" selected>
+                        {{ \App\Http\Controllers\StudentController::studentLabel($chosenStudent) }}
                     </option>
-                @endforeach
+                @endif
             </select>
             @error('student_id')<p class="form-error">{{ $message }}</p>@enderror
         </div>
@@ -52,9 +58,19 @@
         <div class="form-field">
             <label class="form-label" for="academic_year">Academic Year <span class="req">*</span></label>
             <input type="text" id="academic_year" name="academic_year" required placeholder="e.g. 2081"
-                   value="{{ old('academic_year', $report?->academic_year ?? date('Y')) }}"
+                   inputmode="numeric" pattern="\d{4}" maxlength="4" list="academicYears"
+                   value="{{ old('academic_year', $report?->academic_year) }}"
                    class="form-input @error('academic_year') is-invalid @enderror">
-            @error('academic_year')<p class="form-error">{{ $message }}</p>@enderror
+            <datalist id="academicYears">
+                @foreach(\App\Models\StudentReport::distinct()->orderByDesc('academic_year')->pluck('academic_year') as $year)
+                    <option value="{{ $year }}"></option>
+                @endforeach
+            </datalist>
+            @error('academic_year')
+                <p class="form-error">{{ $message }}</p>
+            @else
+                <p class="form-hint">Four digits, e.g. 2081.</p>
+            @enderror
         </div>
     </div>
 </div>
@@ -83,15 +99,16 @@
                     <tr>
                         <td class="marks-subject">
                             {{ $subject->name }}
+                            <span class="marks-full">/ {{ $subject->full_marks }}</span>
                             <input type="hidden" name="marks[{{ $index }}][subject_id]" value="{{ $subject->id }}">
                         </td>
                         @foreach($terms as $key => $term)
                             @foreach(['th' => 'theory', 'pr' => 'practical'] as $suffix => $stored)
                                 <td>
-                                    <input type="number" min="0" max="100" step="0.01"
+                                    <input type="number" min="0" max="{{ $subject->full_marks }}" step="0.01"
                                            name="marks[{{ $index }}][{{ $key }}_{{ $suffix }}]"
                                            value="{{ old('marks.'.$index.'.'.$key.'_'.$suffix, $existingMarks[$subject->id][$key][$stored] ?? '') }}"
-                                           class="form-input marks-input">
+                                           class="form-input marks-input @error('marks.'.$index.'.'.$key.'_'.$suffix) is-invalid @enderror">
                                 </td>
                             @endforeach
                         @endforeach
@@ -106,6 +123,16 @@
             </tbody>
         </table>
     </div>
+
+    {{-- A cell cannot hold its own message, so mark errors are listed here. --}}
+    @php
+        $markErrors = collect($errors->getMessages())
+            ->filter(fn ($messages, $key) => str_starts_with($key, 'marks.'))
+            ->flatten()->unique();
+    @endphp
+    @foreach($markErrors as $message)
+        <p class="form-error">{{ $message }}</p>
+    @endforeach
 </div>
 
 <p class="form-card-section"><span>Attendance</span></p>
@@ -125,7 +152,11 @@
             <input type="number" id="total_days" name="total_days" min="0"
                    value="{{ old('total_days', $report?->total_days) }}"
                    class="form-input @error('total_days') is-invalid @enderror">
-            @error('total_days')<p class="form-error">{{ $message }}</p>@enderror
+            @error('total_days')
+                <p class="form-error">{{ $message }}</p>
+            @else
+                <p class="form-hint">Days present cannot be more than this.</p>
+            @enderror
         </div>
     </div>
 </div>
@@ -165,3 +196,56 @@
     <a href="{{ route('reports.index') }}" class="btn-ghost">Cancel</a>
     <button type="submit" class="btn-primary-flat">{{ $submitLabel }}</button>
 </div>
+
+@push('scripts')
+<script>
+    $(function () {
+        $('[data-student-select]').select2({
+            width: '100%',
+            placeholder: 'Search a student by name, roll or symbol number',
+            allowClear: false,
+            minimumInputLength: 0,
+            ajax: {
+                url: '{{ route('students.options') }}',
+                dataType: 'json',
+                delay: 250,
+                data: (params) => ({ q: params.term, page: params.page || 1 }),
+                processResults: (data) => data,
+                cache: true,
+            },
+            templateResult: function (item) {
+                if (!item.id) return item.text;
+
+                const row = document.createElement('div');
+                row.textContent = item.text;
+
+                if (item.school || item.inactive) {
+                    const meta = document.createElement('div');
+                    meta.className = 'select2-student-meta';
+                    meta.textContent = item.school || '';
+                    if (item.inactive) {
+                        const left = document.createElement('span');
+                        left.className = 'is-left';
+                        left.textContent = (item.school ? ' · ' : '') + 'No longer enrolled';
+                        meta.appendChild(left);
+                    }
+                    row.appendChild(meta);
+                }
+
+                return row;
+            },
+            language: {
+                inputTooShort: () => 'Type to search students',
+                searching: () => 'Searching…',
+                noResults: () => 'No students found',
+            },
+        });
+
+        // Select2 hides the original <select>, so the shared validator cannot
+        // focus it; point it at the control the user can actually see.
+        $('[data-student-select]').on('select2:select', function () {
+            $(this).removeClass('is-invalid').closest('.form-field').find('.form-error.is-client').remove();
+        });
+    });
+</script>
+@endpush

@@ -54,7 +54,7 @@
             autoInitDatePickers: false,
             emptyMessage: 'No reports found',
             search: { placeholder: 'Search student or academic year…' },
-            enableSortColumns: ['academic_year', 'final_gpa', 'issue_date'],
+            enableSortColumns: ['academic_year', 'final_gpa', 'position', 'issue_date'],
 
             columns: [
                 { name: 'S.no', isSerialNo: true, width: '60px', align: 'center' },
@@ -62,6 +62,10 @@
                 { name: 'Class', field: 'class' },
                 { name: 'Academic Year', field: 'academic_year' },
                 { name: 'Final GPA', field: 'final_gpa', align: 'right', render: (r) => `<strong>${th_escapeHtml(r.final_gpa)}</strong>` },
+                {
+                    name: 'Position', field: 'position', align: 'center',
+                    render: (r) => r.position ? '#' + r.position : '—'
+                },
                 {
                     name: 'Grade', field: 'final_grade',
                     render: (r) => r.final_grade
@@ -107,7 +111,22 @@
                 autoGenerateColumnFilters: false,
                 columnFilters: [
                     { field: 'student', type: 'text', param: 'student', placeholder: 'Student' },
-                    { field: 'academic_year', type: 'text', param: 'academic_year', placeholder: 'Year' },
+                    {
+                        field: 'class', type: 'select', param: 'class', allowBlank: true,
+                        options: [
+                            @foreach($classes as $class)
+                            { value: '{{ $class }}', label: 'Class {{ $class }}' },
+                            @endforeach
+                        ]
+                    },
+                    {
+                        field: 'academic_year', type: 'select', param: 'academic_year', allowBlank: true,
+                        options: [
+                            @foreach($years as $year)
+                            { value: '{{ $year }}', label: '{{ $year }}' },
+                            @endforeach
+                        ]
+                    },
                     { field: 'final_grade', type: 'text', param: 'final_grade', placeholder: 'Grade' },
                     {
                         field: 'result_status', type: 'select', param: 'result_status', allowBlank: true,
