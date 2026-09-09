@@ -9,6 +9,28 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     /**
+     * Moves an uploaded photo into public/assets/student and returns its path,
+     * or null when the form did not carry one. Mirrors the school logo.
+     */
+    private function storePhoto(Request $request): ?string
+    {
+        if (! $request->hasFile('photo')) {
+            return null;
+        }
+
+        $destination = public_path('assets/student/');
+        if (! file_exists($destination)) {
+            mkdir($destination, 0777, true);
+        }
+
+        $file = $request->file('photo');
+        $name = time().'_'.$file->getClientOriginalName();
+        $file->move($destination, $name);
+
+        return 'assets/student/'.$name;
+    }
+
+    /**
      * JSON rows for the TableHelper grid on the index page.
      */
     public function list(Request $request)
@@ -24,13 +46,14 @@ class StudentController extends Controller
         }
 
         return TableResponse::make($request, $query, [
-            'search' => ['name', 'roll_number', 'class'],
+            'search' => ['name', 'roll_number', 'class', 'symbol_number'],
             'filters' => [
                 'name' => 'name',
                 'class' => 'class',
                 'section' => 'section',
                 'roll_number' => 'roll_number',
                 'school' => fn ($q, $v) => $q->whereHas('school', fn ($s) => $s->where('name', 'like', '%'.$v.'%')),
+                'is_active' => ['is_active', 'exact'],
             ],
             'sort' => [
                 'name' => 'name',
@@ -45,6 +68,7 @@ class StudentController extends Controller
             'section' => $student->section,
             'roll_number' => $student->roll_number,
             'school' => $student->school->name ?? '-',
+            'is_active' => (int) $student->is_active,
         ]);
     }
 
@@ -67,15 +91,26 @@ class StudentController extends Controller
             'class' => 'required|string|max:50',
             'section' => 'required|string|max:10',
             'roll_number' => 'required|integer',
+            'symbol_number' => 'nullable|string|max:50',
+            'gender' => 'nullable|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
+            'date_of_admission' => 'nullable|date',
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
+            'guardian_name' => 'nullable|string|max:255',
+            'guardian_phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'is_active' => 'boolean',
             'school_id' => 'required|exists:schools,id'
         ]);
 
         $this->authorizeSchool((int) $validated['school_id']);
+
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['photo'] = $this->storePhoto($request) ?? null;
 
         Student::create($validated);
 
@@ -107,16 +142,27 @@ class StudentController extends Controller
             'class' => 'required|string|max:50',
             'section' => 'required|string|max:10',
             'roll_number' => 'required|integer',
+            'symbol_number' => 'nullable|string|max:50',
+            'gender' => 'nullable|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
+            'date_of_admission' => 'nullable|date',
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
+            'guardian_name' => 'nullable|string|max:255',
+            'guardian_phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'is_active' => 'boolean',
             'school_id' => 'required|exists:schools,id'
         ]);
 
         // Also blocks moving a student into a school the user cannot manage.
         $this->authorizeSchool((int) $validated['school_id']);
+
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['photo'] = $this->storePhoto($request) ?? $student->photo;
 
         $student->update($validated);
 

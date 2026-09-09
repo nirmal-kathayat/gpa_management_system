@@ -33,7 +33,7 @@
             enableCheckbox: false,
             autoInitDatePickers: false,
             emptyMessage: 'No students found',
-            search: { placeholder: 'Search name, roll no or class…' },
+            search: { placeholder: 'Search name, roll no, class or symbol no…' },
             enableSortColumns: ['name', 'class', 'roll_number'],
 
             columns: [
@@ -43,6 +43,12 @@
                 { name: 'Section', field: 'section' },
                 { name: 'Roll No.', field: 'roll_number' },
                 { name: 'School', field: 'school' },
+                {
+                    name: 'Status', field: 'is_active',
+                    render: (r) => r.is_active
+                        ? '<span class="badge bg-success">Enrolled</span>'
+                        : '<span class="badge bg-secondary">Left</span>'
+                },
                 {
                     name: 'Action',
                     type: 'actions',
@@ -71,7 +77,11 @@
                     { field: 'class', type: 'text', param: 'class', placeholder: 'Class' },
                     { field: 'section', type: 'text', param: 'section', placeholder: 'Section' },
                     { field: 'roll_number', type: 'text', param: 'roll_number', placeholder: 'Roll no.' },
-                    { field: 'school', type: 'text', param: 'school', placeholder: 'School' }
+                    { field: 'school', type: 'text', param: 'school', placeholder: 'School' },
+                    {
+                        field: 'is_active', type: 'select', param: 'is_active', allowBlank: true,
+                        options: [{ value: '1', label: 'Enrolled' }, { value: '0', label: 'Left' }]
+                    }
                 ]
             }
         });

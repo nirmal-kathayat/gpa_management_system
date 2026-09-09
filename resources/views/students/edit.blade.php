@@ -4,7 +4,7 @@
 @section('page-title', 'Edit Student')
 
 @section('content')
-<form class="form-card" action="{{ route('students.update', $student) }}" method="POST">
+<form class="form-card is-roomy" enctype="multipart/form-data" action="{{ route('students.update', $student) }}" method="POST">
     @csrf
     @method('PUT')
     @include('students._form', [

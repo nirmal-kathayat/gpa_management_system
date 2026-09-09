@@ -14,16 +14,26 @@ class Student extends Model
         'class',
         'section',
         'roll_number',
+        'symbol_number',
+        'gender',
         'date_of_birth',
+        'date_of_admission',
         'father_name',
         'mother_name',
+        'guardian_name',
+        'guardian_phone',
         'address',
         'phone',
+        'email',
+        'photo',
+        'is_active',
         'school_id'
     ];
 
     protected $casts = [
-        'date_of_birth' => 'date'
+        'date_of_birth' => 'date',
+        'date_of_admission' => 'date',
+        'is_active' => 'boolean',
     ];
 
     public function school()
