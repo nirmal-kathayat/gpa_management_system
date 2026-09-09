@@ -1442,6 +1442,52 @@ input[type="file"].form-input::file-selector-button:hover {
     }
 }
 
+/* ---------- Form modal ----------
+   Bootstrap's modal, wearing the form card. No extra JavaScript needed: the
+   bundle is already loaded for the dropdown. */
+
+.form-modal .modal-dialog {
+    max-width: 720px;
+}
+
+.form-modal .modal-content {
+    border: 0;
+    border-radius: 16px;
+}
+
+.form-modal .form-card {
+    max-width: none;
+    border: 0;
+}
+
+.form-modal .form-card-head {
+    position: relative;
+    padding-right: 64px;
+}
+
+.form-card-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #9aa5b6;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.form-card-close:hover {
+    background: var(--page);
+    color: var(--ink);
+}
+
 /* ---------- Confirmation dialog ---------- */
 
 .confirm-backdrop {

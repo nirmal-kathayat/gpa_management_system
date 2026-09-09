@@ -48,6 +48,7 @@
     <script src="{{ asset('assets/js/table-helper.js') }}"></script>
     <script src="{{ asset('assets/js/confirm-dialog.js') }}"></script>
     <script src="{{ asset('assets/js/toast.js') }}"></script>
+    <script src="{{ asset('assets/js/form-validate.js') }}"></script>
     <x-scripts />
     @stack('scripts')
 </body>

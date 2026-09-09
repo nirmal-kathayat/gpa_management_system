@@ -32,6 +32,7 @@ class SchoolController extends Controller
             'address' => $school->address,
             'phone' => $school->phone,
             'email' => $school->email,
+            'logo' => $school->logo,
             'students_count' => $school->students_count,
         ]);
     }
@@ -42,9 +43,13 @@ class SchoolController extends Controller
         return view('schools.index');
     }
 
+    /**
+     * Schools are added and edited through a modal on the index page, so there
+     * are no create/edit screens; old links land on the list with it open.
+     */
     public function create()
     {
-        return view('schools.create');
+        return redirect()->route('schools.index', ['add' => 1]);
     }
 
     public function store(Request $request)
@@ -89,7 +94,7 @@ class SchoolController extends Controller
 
     public function edit(School $school)
     {
-        return view('schools.edit', compact('school'));
+        return redirect()->route('schools.index', ['edit' => $school->id]);
     }
 
     public function update(Request $request, School $school)
