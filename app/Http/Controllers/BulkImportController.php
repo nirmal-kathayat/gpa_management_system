@@ -26,6 +26,10 @@ class BulkImportController extends Controller
     /** Enough for a whole school; beyond this the file wants splitting. */
     private const MAX_ROWS = 2000;
 
+    /** The class the template's example row is filed under. */
+    private const SAMPLE_CLASS = '10';
+    private const SAMPLE_SECTION = 'A';
+
     public function index()
     {
         return view('bulk-import.index', [
@@ -265,19 +269,25 @@ class BulkImportController extends Controller
     }
 
     /**
-     * The template carries a real school id, so the sample row is one that
-     * would actually import.
+     * The sample row is built from live data so that downloading the template
+     * and uploading it straight back actually imports: a real school id, and a
+     * roll number that is free in that class rather than one already taken.
      */
     public function downloadTemplate()
     {
         $columns = array_merge(self::REQUIRED, self::OPTIONAL);
         $schoolId = $this->selectableSchools()->first()?->id ?? 1;
 
+        $roll = 1 + (int) Student::where('school_id', $schoolId)
+            ->where('class', self::SAMPLE_CLASS)
+            ->where('section', self::SAMPLE_SECTION)
+            ->max('roll_number');
+
         $sample = [
             'name' => 'Ramesh Thapa',
-            'class' => '10',
-            'section' => 'A',
-            'roll_number' => '1',
+            'class' => self::SAMPLE_CLASS,
+            'section' => self::SAMPLE_SECTION,
+            'roll_number' => (string) $roll,
             'school_id' => (string) $schoolId,
             'father_name' => 'Hari Thapa',
             'mother_name' => 'Sita Thapa',
