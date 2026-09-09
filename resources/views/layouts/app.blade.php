@@ -45,6 +45,7 @@
         </div>
 
         @include('layouts.partials.footer')
+        @include('layouts.partials.confirm-dialog')
     @else
         <div class="container py-4">
             @yield('content')
@@ -55,6 +56,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('assets/js/table-helper.js') }}"></script>
+    <script src="{{ asset('assets/js/confirm-dialog.js') }}"></script>
     @include('layouts.partials.scripts')
     @stack('scripts')
 </body>

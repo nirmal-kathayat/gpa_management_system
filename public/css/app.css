@@ -1103,6 +1103,145 @@ select.form-input {
     }
 }
 
+/* ---------- Confirmation dialog ---------- */
+
+.confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(7, 27, 52, .42);
+    /* Kept in the DOM so the fade has something to animate; visibility is what
+       actually takes it out of reach when closed. Transitioning visibility
+       would interpolate it discretely and leave the dialog hidden for the first
+       half of the fade in - and unfocusable with it - so instead it flips at
+       once on open and is merely delayed on close. */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .18s ease, visibility 0s linear .18s;
+}
+
+.confirm-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity .18s ease, visibility 0s;
+}
+
+.confirm-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 28px 28px 24px;
+    text-align: center;
+    background: #fff;
+    border-radius: 16px;
+    transform: translateY(10px) scale(.97);
+    transition: transform .18s cubic-bezier(.2, .8, .3, 1);
+}
+
+.confirm-backdrop.is-open .confirm-card {
+    transform: translateY(0) scale(1);
+}
+
+.confirm-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    font-size: 20px;
+}
+
+.confirm-backdrop[data-tone="danger"] .confirm-icon {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.confirm-backdrop[data-tone="primary"] .confirm-icon {
+    background: var(--soft);
+    color: var(--primary);
+}
+
+.confirm-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.confirm-message {
+    margin: 8px 0 0;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.confirm-actions button {
+    flex: 1;
+    height: 42px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.confirm-cancel {
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--line);
+}
+
+.confirm-cancel:hover {
+    background: var(--page);
+}
+
+.confirm-accept {
+    color: #fff;
+    border: 0;
+}
+
+.confirm-backdrop[data-tone="danger"] .confirm-accept {
+    background: var(--danger);
+}
+
+.confirm-backdrop[data-tone="danger"] .confirm-accept:hover {
+    background: #97201a;
+}
+
+.confirm-backdrop[data-tone="primary"] .confirm-accept {
+    background: var(--primary);
+}
+
+.confirm-backdrop[data-tone="primary"] .confirm-accept:hover {
+    background: var(--primary-hover);
+}
+
+.confirm-actions button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .confirm-backdrop,
+    .confirm-card {
+        transition: none;
+    }
+}
+
 /* ---------- Report card (print fidelity - unchanged) ---------- */
 
 .report-card {

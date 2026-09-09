@@ -67,7 +67,10 @@
                             type: 'delete', showLabel: false, title: 'Delete',
                             // You cannot delete the account you are signed in as.
                             visible: (row) => !row.is_self,
-                            onClick: (row) => window.tableDelete('/users/' + row.id, 'Delete ' + row.name + '?')
+                            onClick: (row) => window.tableDelete('/users/' + row.id, {
+                                title: 'Delete user?',
+                                message: row.name + ' will lose access immediately.'
+                            })
                         },
                         @endcan
                     ]

@@ -57,8 +57,10 @@
                         @can('schools.delete')
                         {
                             type: 'delete', showLabel: false, title: 'Delete',
-                            onClick: (row) => window.tableDelete('/schools/' + row.id,
-                                'Delete ' + row.name + '? This also deletes every student in it.')
+                            onClick: (row) => window.tableDelete('/schools/' + row.id, {
+                                title: 'Delete school?',
+                                message: row.name + ' will be removed, along with every student in it.'
+                            })
                         },
                         @endcan
                     ]

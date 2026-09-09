@@ -105,7 +105,10 @@
                         @can('grades.delete')
                         {
                             type: 'delete', showLabel: false, title: 'Delete',
-                            onClick: (row) => window.tableDelete('/grades/' + row.id, 'Delete grade ' + row.letter_grade + '?')
+                            onClick: (row) => window.tableDelete('/grades/' + row.id, {
+                                title: 'Delete grade?',
+                                message: 'The ' + row.letter_grade + ' band will be removed from the grading scale.'
+                            })
                         },
                         @endcan
                     ]

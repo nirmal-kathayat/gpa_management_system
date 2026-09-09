@@ -70,7 +70,10 @@
                             type: 'delete', showLabel: false, title: 'Delete role',
                             // The built-in admin role cannot be removed.
                             visible: (row) => !row.locked,
-                            onClick: (row) => window.tableDelete('/roles/' + row.id, 'Delete the ' + row.name + ' role?')
+                            onClick: (row) => window.tableDelete('/roles/' + row.id, {
+                                title: 'Delete role?',
+                                message: 'The ' + row.name + ' role and its permissions will be removed.'
+                            })
                         },
                         @endcan
                     ]

@@ -1,18 +1,29 @@
 {{-- Shared behaviour for every signed-in page. --}}
 <script>
-    // Grid rows cannot hold a Blade <form>, so a delete action posts one.
-    window.tableDelete = function (url, message) {
-        if (message && !window.confirm(message)) return;
+    // Grid rows cannot hold a Blade <form>, so a delete action posts one after
+    // the shared dialog says yes. The second argument is either a message or
+    // the full set of confirmDialog options.
+    window.tableDelete = function (url, options) {
+        const opts = typeof options === 'string' ? { message: options } : (options || {});
 
-        const token = document.querySelector('meta[name="csrf-token"]').content;
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = url;
-        form.innerHTML =
-            '<input type="hidden" name="_token" value="' + token + '">' +
-            '<input type="hidden" name="_method" value="DELETE">';
-        document.body.appendChild(form);
-        form.submit();
+        window.confirmDialog({
+            title: opts.title || 'Delete this record?',
+            message: opts.message,
+            confirmLabel: opts.confirmLabel || 'Delete',
+            tone: 'danger'
+        }).then(function (confirmed) {
+            if (!confirmed) return;
+
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.innerHTML =
+                '<input type="hidden" name="_token" value="' + token + '">' +
+                '<input type="hidden" name="_method" value="DELETE">';
+            document.body.appendChild(form);
+            form.submit();
+        });
     };
 
     // The sidebar slides in over the page below 992px.

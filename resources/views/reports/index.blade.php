@@ -93,8 +93,10 @@
                         @can('reports.delete')
                         {
                             type: 'delete', showLabel: false, title: 'Delete report',
-                            onClick: (row) => window.tableDelete('/reports/' + row.id,
-                                "Delete " + row.student + "'s report for " + row.academic_year + '?')
+                            onClick: (row) => window.tableDelete('/reports/' + row.id, {
+                                title: 'Delete report card?',
+                                message: row.student + "'s report for " + row.academic_year + ' will be removed.'
+                            })
                         },
                         @endcan
                     ]
