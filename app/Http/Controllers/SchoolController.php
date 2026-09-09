@@ -25,7 +25,7 @@ class SchoolController extends Controller
                 'name' => 'name',
                 'students_count' => 'students_count',
             ],
-            'default' => ['name', 'asc'],
+            'default' => ['id', 'desc'],
         ], fn ($school) => [
             'id' => $school->id,
             'name' => $school->name,
@@ -47,6 +47,16 @@ class SchoolController extends Controller
     {
         // Rows are fetched by the grid from schools.list.
         return view('schools.index');
+    }
+
+    /**
+     * The modal is on the listing and on the dashboard, so a save goes back to
+     * whichever one it was opened from. A route name, never a URL, so the form
+     * cannot send the user anywhere else.
+     */
+    private function backTo(Request $request): string
+    {
+        return $request->input('return_to') === 'dashboard' ? 'dashboard' : 'schools.index';
     }
 
     /**
@@ -98,7 +108,7 @@ class SchoolController extends Controller
             'logo' => $imagePath,
         ]);
 
-        return redirect()->route('schools.index')->with('success', 'School created successfully!');
+        return redirect()->route($this->backTo($request))->with('success', 'School created successfully!');
     }
 
 
@@ -164,7 +174,7 @@ class SchoolController extends Controller
             'logo' => $imagePath,
         ]);
 
-        return redirect()->route('schools.index')->with('success', 'School updated successfully!');
+        return redirect()->route($this->backTo($request))->with('success', 'School updated successfully!');
     }
 
     public function destroy(School $school)

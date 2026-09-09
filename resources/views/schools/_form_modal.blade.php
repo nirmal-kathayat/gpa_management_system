@@ -28,6 +28,7 @@
                 <input type="hidden" name="_method" id="schoolFormMethod" value="{{ $editing ? 'PUT' : 'POST' }}">
                 <input type="hidden" name="school_id" id="schoolFormId" value="{{ $editing?->id }}">
                 <input type="hidden" name="form" value="school">
+                <input type="hidden" name="return_to" value="{{ request()->routeIs('dashboard') ? 'dashboard' : '' }}">
 
                 <div class="form-card-head">
                     <h2 class="form-card-title" id="schoolFormTitle">

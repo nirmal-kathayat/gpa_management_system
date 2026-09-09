@@ -54,6 +54,16 @@ class SubjectController extends Controller
         return redirect()->route('subjects.index', ['add' => 1]);
     }
 
+    /**
+     * The modal is on the listing and on the dashboard, so a save goes back to
+     * whichever one it was opened from. A route name, never a URL, so the form
+     * cannot send the user anywhere else.
+     */
+    private function backTo(Request $request): string
+    {
+        return $request->input('return_to') === 'dashboard' ? 'dashboard' : 'subjects.index';
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -69,7 +79,7 @@ class SubjectController extends Controller
 
         Subject::create($validated);
 
-        return redirect()->route('subjects.index')->with('success', 'Subject created successfully!');
+        return redirect()->route($this->backTo($request))->with('success', 'Subject created successfully!');
     }
 
     public function show(Subject $subject)
@@ -111,7 +121,7 @@ class SubjectController extends Controller
 
         $subject->update($validated);
 
-        return redirect()->route('subjects.index')->with('success', 'Subject updated successfully!');
+        return redirect()->route($this->backTo($request))->with('success', 'Subject updated successfully!');
     }
 
     public function destroy(Subject $subject)
