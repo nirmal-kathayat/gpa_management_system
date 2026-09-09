@@ -45,6 +45,13 @@
   border: 1px solid #e2e8f0 !important;
 }
 
+/* Bootstrap draws `border-top: 2px solid currentColor` between <thead> and
+   <tbody>, which inherits the body text colour and renders as a dark bar under
+   the filter row. The header cell's own grey border is the line we want. */
+.cq-grid table > :not(:first-child) {
+  border-top: 0 !important;
+}
+
 .cq-grid tbody tr:nth-child(even) td {
   background-color: #f8fafc !important;
 }
