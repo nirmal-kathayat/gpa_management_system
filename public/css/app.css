@@ -25,6 +25,7 @@
     --radius: 12px;
     --sidebar-w: 260px;
     --topbar-h: 72px;
+    --footer-h: 48px;
 }
 
 * {
@@ -210,8 +211,13 @@ a:hover {
     color: var(--primary);
 }
 
+/* Same height as .app-footer so the two bottom bars form one line. */
 .sidebar-footer {
-    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    height: var(--footer-h);
+    padding: 0 20px;
     border-top: 1px solid var(--line);
     font-size: 12px;
     color: var(--muted);
@@ -412,10 +418,36 @@ a:hover {
     color: var(--muted);
 }
 
+/* ---------- Footer ---------- */
+
+.app-footer {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: var(--sidebar-w);
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: var(--footer-h);
+    padding: 0 32px;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.footer-note {
+    color: #9aa5b6;
+}
+
 /* ---------- Page body ---------- */
 
 .page-body {
     padding: 28px 32px;
+    /* The footer is fixed, so the last row of content needs room to clear it. */
+    padding-bottom: calc(28px + var(--footer-h));
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -1099,7 +1131,8 @@ select.form-input {
 
     .no-print,
     .sidebar,
-    .top-navbar {
+    .top-navbar,
+    .app-footer {
         display: none !important;
     }
 
@@ -1134,9 +1167,14 @@ select.form-input {
     }
 
     .top-navbar,
-    .page-body {
+    .page-body,
+    .app-footer {
         padding-left: 20px;
         padding-right: 20px;
+    }
+
+    .app-footer {
+        left: 0;
     }
 
     .grid-table-head {
@@ -1158,5 +1196,14 @@ select.form-input {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+    }
+
+    /* Not enough room for both, and the copyright is the part that matters. */
+    .footer-note {
+        display: none;
+    }
+
+    .app-footer {
+        font-size: 11px;
     }
 }
