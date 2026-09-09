@@ -23,7 +23,8 @@ class RoleController extends Controller
             'search' => ['name'],
             'filters' => ['name' => 'name'],
             'sort' => ['name' => 'name', 'permissions_count' => 'permissions_count', 'users_count' => 'users_count'],
-            'default' => ['name', 'asc'],
+            // Newest first, so a role just added is the row you land on.
+            'default' => ['id', 'desc'],
         ], fn ($role) => [
             'id' => $role->id,
             'name' => Str::headline($role->name),

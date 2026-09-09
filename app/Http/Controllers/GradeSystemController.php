@@ -30,6 +30,8 @@ class GradeSystemController extends Controller
                 'grade_point' => 'grade_point',
                 'marks' => 'marks_from',
             ],
+            // The one grid that is not newest-first: a grading scale only reads
+            // correctly from the top band down.
             'default' => ['marks_from', 'desc'],
         ], fn ($grade) => [
             'id' => $grade->id,

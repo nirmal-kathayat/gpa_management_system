@@ -25,6 +25,7 @@ class SchoolController extends Controller
                 'name' => 'name',
                 'students_count' => 'students_count',
             ],
+            // Newest first, so a school just added is the row you land on.
             'default' => ['id', 'desc'],
         ], fn ($school) => [
             'id' => $school->id,

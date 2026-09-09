@@ -104,7 +104,8 @@ class StudentController extends Controller
                 'class' => 'class',
                 'roll_number' => 'roll_number',
             ],
-            'default' => ['name', 'asc'],
+            // Newest first, so a student just added is the row you land on.
+            'default' => ['id', 'desc'],
         ], fn ($student) => [
             'id' => $student->id,
             'name' => $student->name,

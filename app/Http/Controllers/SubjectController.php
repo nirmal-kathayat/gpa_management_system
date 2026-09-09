@@ -27,7 +27,8 @@ class SubjectController extends Controller
                 'code' => 'code',
                 'full_marks' => 'full_marks',
             ],
-            'default' => ['name', 'asc'],
+            // Newest first, so a subject just added is the row you land on.
+            'default' => ['id', 'desc'],
         ], fn ($subject) => [
             'id' => $subject->id,
             'name' => $subject->name,

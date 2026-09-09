@@ -34,7 +34,8 @@ class UserController extends Controller
                 'username' => 'username',
                 'email' => 'email',
             ],
-            'default' => ['name', 'asc'],
+            // Newest first, so a user just added is the row you land on.
+            'default' => ['id', 'desc'],
         ], fn ($user) => [
             'id' => $user->id,
             'name' => $user->name,

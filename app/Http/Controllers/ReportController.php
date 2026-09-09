@@ -47,6 +47,7 @@ class ReportController extends Controller
                 'position' => 'position',
                 'issue_date' => 'issue_date',
             ],
+            // Newest first, so a report just issued is the row you land on.
             'default' => ['id', 'desc'],
         ], fn ($report) => [
             'id' => $report->id,
