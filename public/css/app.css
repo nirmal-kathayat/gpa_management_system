@@ -1113,20 +1113,21 @@ select.form-input {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    width: min(380px, calc(100vw - 32px));
+    width: min(400px, calc(100vw - 32px));
     pointer-events: none;
 }
 
 .toast-item {
     display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 14px 14px 16px;
+    align-items: center;
+    gap: 14px;
+    min-height: 62px;
+    padding: 16px 16px 16px 18px;
+    /* One even border all the way round - the icon carries the meaning. */
     border: 1px solid var(--line);
-    border-left: 3px solid var(--muted);
     border-radius: var(--radius);
     background: #fff;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
     color: var(--ink);
     pointer-events: auto;
@@ -1158,8 +1159,7 @@ select.form-input {
 
 .toast-icon {
     flex-shrink: 0;
-    margin-top: 1px;
-    font-size: 15px;
+    font-size: 17px;
 }
 
 .toast-text {
@@ -1169,12 +1169,13 @@ select.form-input {
 
 .toast-close {
     flex-shrink: 0;
+    align-self: flex-start;
     padding: 0 2px;
     border: 0;
     background: none;
     color: #9aa5b6;
-    font-size: 13px;
-    line-height: 1;
+    font-size: 14px;
+    line-height: 1.4;
     cursor: pointer;
 }
 
@@ -1182,32 +1183,16 @@ select.form-input {
     color: var(--ink);
 }
 
-.toast-success {
-    border-left-color: var(--positive);
-}
-
 .toast-success .toast-icon {
     color: var(--positive);
-}
-
-.toast-error {
-    border-left-color: var(--danger);
 }
 
 .toast-error .toast-icon {
     color: var(--danger);
 }
 
-.toast-warning {
-    border-left-color: var(--warning);
-}
-
 .toast-warning .toast-icon {
     color: var(--warning);
-}
-
-.toast-info {
-    border-left-color: var(--primary);
 }
 
 .toast-info .toast-icon {

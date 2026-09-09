@@ -1984,7 +1984,7 @@ class TableHelper {
                 `<option value="${option}" ${option === this.config.perPage ? 'selected' : ''}>${option}</option>`
             ).join('');
 
-            perPageHtml = `<div>
+            perPageHtml = `<div class="cq-per-page">
                 <label for="${this.config.containerId}-per-page" class="form-label me-2 mb-0">Rows per page:</label>
                 <select id="${this.config.containerId}-per-page" class="form-select form-select-sm" style="width: 80px; display: inline-block;" data-table-id="${this.config.containerId}">
                     ${perPageOptions}

@@ -91,10 +91,29 @@
   border-color: #e2e8f0 !important;
 }
 
-/* Rows per page label */
-.cq-grid-pagination .form-label {
+/* Rows per page - label and select on one line, and never squeezed onto two
+   by the flex row they sit in. */
+.cq-per-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cq-per-page .form-label {
+  margin: 0 !important;
   color: #475569 !important;
   font-size: 13px !important;
+}
+
+.cq-per-page .form-select {
+  height: 32px;
+  padding: 0 26px 0 10px;
+  font-size: 13px;
+  color: #334155;
+  border-color: #e2e8f0;
+  box-shadow: none;
 }
 
 /* Showing X to Y of Z */
