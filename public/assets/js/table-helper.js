@@ -1289,10 +1289,14 @@ class TableHelper {
                     // Fallback: try by generated id (in case called directly without event handler)
                     value = getElementValue(def.id);
 
-                    // Fallback: by name attribute matching param
+                    // Fallback: by name attribute matching param, scoped to the
+                    // grid. Searching the whole document would pick up any form
+                    // on the page that happens to use the same field name - a
+                    // modal with an "is_active" checkbox, say - and silently
+                    // filter the table by it.
                     if ((value == null || value === '') && def.param) {
                         try {
-                            const byName = document.querySelector(`[name="${def.param}"]`);
+                            const byName = document.querySelector(`#${this.config.containerId} [name="${def.param}"]`);
                             if (byName) value = byName.value ?? null;
                         } catch (e) { /* ignore */ }
                     }
@@ -1306,10 +1310,12 @@ class TableHelper {
                         } catch (e) { /* ignore */ }
                     }
 
-                    // Fallback: by placeholder
+                    // Fallback: by placeholder, scoped to the grid for the same reason.
                     if ((value == null || value === '') && def.placeholder) {
                         try {
-                            const byPlaceholder = document.querySelector(`input[placeholder='${def.placeholder}'], select[placeholder='${def.placeholder}']`);
+                            const selector = `#${this.config.containerId} input[placeholder='${def.placeholder}'], `
+                                + `#${this.config.containerId} select[placeholder='${def.placeholder}']`;
+                            const byPlaceholder = document.querySelector(selector);
                             if (byPlaceholder) value = byPlaceholder.value ?? null;
                         } catch (e) { /* ignore */ }
                     }

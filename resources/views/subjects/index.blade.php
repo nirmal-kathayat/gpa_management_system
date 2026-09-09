@@ -10,7 +10,9 @@
     </div>
     @can('subjects.create')
         <div class="toolbar-actions">
-            <a href="{{ route('subjects.create') }}" class="btn-primary-flat"><i class="fas fa-plus"></i>Add Subject</a>
+            <button type="button" class="btn-primary-flat" id="addSubjectBtn">
+                <i class="fas fa-plus"></i>Add Subject
+            </button>
         </div>
     @endcan
 </div>
@@ -20,6 +22,10 @@
         <div id="subjects-grid" class="cq-grid"></div>
     </div>
 </div>
+
+@canany(['subjects.create', 'subjects.update'])
+    @include('subjects._form_modal')
+@endcanany
 @endsection
 
 @push('scripts')
@@ -54,7 +60,8 @@
                     actions: [
                         { type: 'view', showLabel: false, title: 'View', url: '/subjects/{id}' },
                         @can('subjects.update')
-                        { type: 'edit', showLabel: false, title: 'Edit', url: '/subjects/{id}/edit' },
+                        // No url - the modal opens from the click and fills itself from this row.
+                        { type: 'edit', showLabel: false, title: 'Edit' },
                         @endcan
                         @can('subjects.delete')
                         {

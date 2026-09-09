@@ -42,9 +42,13 @@ class SubjectController extends Controller
         return view('subjects.index');
     }
 
+    /**
+     * Subjects are added and edited through a modal on the index page, so there
+     * are no create/edit screens; old links land on the list with it open.
+     */
     public function create()
     {
-        return view('subjects.create');
+        return redirect()->route('subjects.index', ['add' => 1]);
     }
 
     public function store(Request $request)
@@ -56,6 +60,8 @@ class SubjectController extends Controller
             'pass_marks' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean'
         ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
 
         Subject::create($validated);
 
@@ -69,7 +75,7 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject)
     {
-        return view('subjects.edit', compact('subject'));
+        return redirect()->route('subjects.index', ['edit' => $subject->id]);
     }
 
     public function update(Request $request, Subject $subject)
@@ -81,6 +87,8 @@ class SubjectController extends Controller
             'pass_marks' => 'required|integer|min:1|max:100',
             'is_active' => 'boolean'
         ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
 
         $subject->update($validated);
 
