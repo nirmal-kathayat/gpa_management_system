@@ -33,6 +33,15 @@
 
     $failed = $report->result_status === 'FAILED';
 
+    // Every sheet carries a crest: the uploaded logo, or the school's initials
+    // in the same soft-blue mark students already get.
+    $crest = \Illuminate\Support\Str::of($school?->name ?: 'School')
+        ->explode(' ')
+        ->take(2)
+        ->map(fn ($word) => \Illuminate\Support\Str::substr($word, 0, 1))
+        ->implode('');
+    $crest = \Illuminate\Support\Str::upper($crest);
+
     $identity = [
         'Name' => $student->name,
         'Class' => $student->class,
@@ -63,8 +72,12 @@
         <tr>
             <td class="sheet-brand-side">
                 @if($school?->logo)
-                    <img src="{{ $pdf ?? false ? public_path($school->logo) : asset($school->logo) }}"
-                         alt="{{ $school->name }}">
+                    <img class="sheet-crest" alt="{{ $school->name }}"
+                         src="{{ $pdf ?? false ? public_path($school->logo) : asset($school->logo) }}">
+                @else
+                    {{-- A one-cell table, because that is the only vertical
+                         centring DomPDF gets right. --}}
+                    <table class="sheet-monogram"><tr><td>{{ $crest }}</td></tr></table>
                 @endif
             </td>
             <td class="sheet-brand-main">

@@ -29,14 +29,35 @@
 
 /* Two equal side cells keep the name block centred on the page, logo or not. */
 .sheet-brand-side {
-    width: 72px;
+    width: 68px;
     vertical-align: middle;
 }
 
-.sheet-brand-side img {
-    width: 64px;
-    height: 64px;
+/* The uploaded logo and the initials standing in for it share one square. */
+/* Capped rather than sized: DomPDF has no object-fit and would stretch a logo
+   that is not square. */
+.sheet-crest {
+    display: block;
+    max-width: 60px;
+    max-height: 60px;
     object-fit: contain;
+}
+
+.sheet-monogram {
+    width: 60px;
+    border-collapse: collapse;
+}
+
+.sheet-monogram td {
+    height: 60px;
+    border-radius: 12px;
+    background: #edf4fb;
+    color: #2866ac;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-align: center;
+    vertical-align: middle;
 }
 
 .sheet-brand-main {
