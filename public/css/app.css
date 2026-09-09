@@ -2564,30 +2564,13 @@ input[type="file"].form-input::file-selector-button:hover {
     }
 }
 
-/* ---------- Report card (print fidelity - unchanged) ---------- */
+/* ---------- Print ---------- */
 
-.report-card {
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-}
-
-.report-table {
-    border-collapse: collapse;
-    width: 100%;
-}
-
-.report-table th,
-.report-table td {
-    border: 1px solid #000;
-    padding: 4px;
-    text-align: center;
-}
-
-.report-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
+/*
+ * Printing a mark sheet has to give the same sheet the PDF does: no chrome and
+ * the page's own margins. The sheet drops its card in public/css/marksheet.css,
+ * which loads after this file.
+ */
 @media print {
 
     .no-print,
@@ -2597,9 +2580,22 @@ input[type="file"].form-input::file-selector-button:hover {
         display: none !important;
     }
 
+    body {
+        background: #fff;
+    }
+
     .main-content {
         margin-left: 0 !important;
     }
+
+    .page-body {
+        padding: 0 !important;
+    }
+}
+
+@page {
+    size: A4 portrait;
+    margin: 12mm 10mm;
 }
 
 /* ---------- Responsive ---------- */

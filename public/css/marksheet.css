@@ -1,0 +1,373 @@
+/*
+ * The mark sheet itself - shared by reports/show (on screen and when printed)
+ * and reports/pdf (inlined, because DomPDF has no access to the stylesheet).
+ *
+ * Everything here has to survive DomPDF, so the layout is tables, the units are
+ * px and the colours are literal - custom properties are not supported there.
+ * The palette is the same one public/css/app.css defines.
+ */
+
+.sheet {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 32px 36px 28px;
+    background: #fff;
+    border: 1px solid #e1e6ee;
+    border-radius: 12px;
+    color: #233044;
+    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+/* ---------- School header ---------- */
+
+.sheet-brand {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Two equal side cells keep the name block centred on the page, logo or not. */
+.sheet-brand-side {
+    width: 72px;
+    vertical-align: middle;
+}
+
+.sheet-brand-side img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+}
+
+.sheet-brand-main {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.sheet-school {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #071b34;
+    letter-spacing: .2px;
+}
+
+.sheet-school-meta {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: #5c6b82;
+}
+
+.sheet-rule {
+    height: 1px;
+    margin: 14px 0 0;
+    background: #e1e6ee;
+    font-size: 0;
+    line-height: 0;
+}
+
+.sheet-title {
+    margin: 11px 0 12px;
+    text-align: center;
+}
+
+.sheet-title-main {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #071b34;
+}
+
+.sheet-title-sub {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: #5c6b82;
+}
+
+/* ---------- Student identity strip ---------- */
+
+.sheet-identity {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+}
+
+.sheet-identity td {
+    padding: 6px 10px;
+    border: 1px solid #e1e6ee;
+    background: #f6f8fb;
+    vertical-align: top;
+}
+
+.sheet-identity .k {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+.sheet-identity .v {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #071b34;
+}
+
+/* ---------- Tables ---------- */
+
+.sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.sheet-table th,
+.sheet-table td {
+    padding: 3px 6px;
+    border: 1px solid #e1e6ee;
+    text-align: center;
+}
+
+.sheet-table thead th {
+    background: #f6f8fb;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+.sheet-table td.is-left,
+.sheet-table th.is-left {
+    text-align: left;
+}
+
+.sheet-subject {
+    font-weight: 600;
+    color: #233044;
+}
+
+.sheet-full {
+    color: #5c6b82;
+}
+
+/* An unrecorded mark is a dash, not an empty box. */
+.sheet-blank {
+    color: #b8c2d1;
+}
+
+.sheet-grade {
+    font-weight: 700;
+    color: #071b34;
+}
+
+.sheet-grade.is-fail {
+    color: #b3261e;
+}
+
+/* ---------- Two columns ---------- */
+
+.sheet-split {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 12px;
+}
+
+.sheet-split > tbody > tr > td {
+    width: 50%;
+    padding: 0 9px 0 0;
+    vertical-align: top;
+}
+
+.sheet-split > tbody > tr > td + td {
+    padding: 0 0 0 9px;
+}
+
+.sheet-block-title {
+    margin: 0 0 6px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+/* Label / value rows: summary, behaviour. */
+.sheet-pairs {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.sheet-pairs td {
+    padding: 5px 9px;
+    border: 1px solid #e1e6ee;
+}
+
+.sheet-pairs td:first-child {
+    color: #5c6b82;
+}
+
+.sheet-pairs td:last-child {
+    width: 38%;
+    text-align: right;
+    font-weight: 600;
+    color: #071b34;
+}
+
+.sheet-pairs .is-strong td:last-child {
+    font-size: 13px;
+}
+
+.sheet-pairs.is-double td {
+    width: 32%;
+    font-weight: 400;
+    color: #5c6b82;
+}
+
+.sheet-pairs.is-double td:nth-child(2n) {
+    width: 18%;
+    text-align: right;
+    font-weight: 600;
+    color: #071b34;
+}
+
+/* ---------- Result ---------- */
+
+.sheet-result {
+    margin-top: 10px;
+    padding: 8px 14px;
+    border: 1px solid #e7f3ec;
+    border-radius: 8px;
+    background: #e7f3ec;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: #1e7a4d;
+}
+
+.sheet-result.is-fail {
+    border-color: #faeaea;
+    background: #faeaea;
+    color: #b3261e;
+}
+
+/* ---------- Legends ---------- */
+
+/*
+ * The grading scale and the result bands are reference, not results, so they
+ * read across the page as a legend. Keeping them off a second column is also
+ * what keeps the whole sheet on one A4 page.
+ */
+.sheet-legend-title {
+    margin: 10px 0 4px;
+}
+
+.sheet-legend {
+    font-size: 9px;
+}
+
+.sheet-legend th,
+.sheet-legend td {
+    padding: 4px 6px;
+}
+
+.sheet-legend th {
+    width: 82px;
+    background: #f6f8fb;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+.sheet-legend .sheet-grade {
+    font-size: 10px;
+}
+
+/* ---------- Remarks and signatures ---------- */
+
+.sheet-remarks {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: 1px solid #e1e6ee;
+    border-radius: 8px;
+    background: #f6f8fb;
+    font-size: 11px;
+}
+
+.sheet-remarks .k {
+    font-weight: 600;
+    color: #071b34;
+}
+
+.sheet-signs {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 16px 0;
+    margin-top: 10px;
+}
+
+.sheet-signs td {
+    width: 25%;
+    padding: 6px 0 0;
+    border-top: 1px solid #233044;
+    text-align: center;
+    font-size: 10px;
+    color: #5c6b82;
+}
+
+.sheet-signs .v {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #071b34;
+}
+
+/* Space above the rules, and a gap between them so they read as four lines. */
+.sheet-signs-spacer td {
+    border: 0;
+    height: 14px;
+    padding: 0;
+}
+
+/* ---------- Printing ---------- */
+
+/*
+ * On paper the page is the sheet, so it loses the card it wears on screen.
+ * These rules live here rather than in app.css because that file loads first
+ * and would lose the tie. DomPDF reads screen styles, so it never sees this -
+ * reports/pdf carries the same overrides of its own.
+ */
+@media print {
+
+    .sheet {
+        max-width: none;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+    }
+
+    /* A sheet that does run to a second page repeats its column headings. */
+    .sheet-table thead {
+        display: table-header-group;
+    }
+
+    .sheet-split,
+    .sheet-result,
+    .sheet-legend,
+    .sheet-remarks,
+    .sheet-signs {
+        page-break-inside: avoid;
+    }
+}
