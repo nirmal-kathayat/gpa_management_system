@@ -1,0 +1,346 @@
+/*
+ * The class result sheet - shared by results/index (on screen and when
+ * printed) and results/pdf (inlined, because DomPDF has no access to the
+ * stylesheet). Same constraints as marksheet.css: tables, px, literal colours.
+ * It is a landscape document with two dozen columns, so everything is small
+ * and tight on purpose.
+ */
+
+/* The same box as the picker card above it: full width, the same border,
+   radius and inner padding as .form-card / .form-card-body in app.css. */
+.rsheet {
+    width: 100%;
+    margin: 0;
+    padding: 24px 28px;
+    background: #fff;
+    border: 1px solid #e1e6ee;
+    border-radius: 12px;
+    color: #233044;
+    font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+/* ---------- Header ---------- */
+
+.rsheet-brand {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.rsheet-brand-side {
+    width: 130px;
+    vertical-align: middle;
+}
+
+.rsheet-crest {
+    display: block;
+    max-width: 56px;
+    max-height: 56px;
+}
+
+.rsheet-monogram {
+    width: 56px;
+    border-collapse: collapse;
+}
+
+.rsheet-monogram td {
+    height: 56px;
+    border-radius: 12px;
+    background: #edf4fb;
+    color: #2866ac;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.rsheet-brand-main {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.rsheet-school {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #071b34;
+}
+
+.rsheet-school-meta {
+    margin: 2px 0 0;
+    font-size: 10px;
+    color: #5c6b82;
+}
+
+.rsheet-heading {
+    margin: 8px 0 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #071b34;
+}
+
+.rsheet-sub {
+    margin: 2px 0 0;
+    font-size: 10px;
+    color: #5c6b82;
+}
+
+/* The three numbers on the right of the header. */
+.rsheet-brand-facts {
+    text-align: right;
+}
+
+.rsheet-brand-facts .k {
+    display: inline-block;
+    width: 66px;
+    white-space: nowrap;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+.rsheet-brand-facts .v {
+    display: inline-block;
+    width: 40px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #071b34;
+}
+
+/* ---------- The grid ---------- */
+
+.rsheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+.rsheet-table th,
+.rsheet-table td {
+    padding: 3px 4px;
+    border: 1px solid #d5dce6;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.rsheet-table thead th {
+    background: #f6f8fb;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+.rsheet-table th.c-subject {
+    font-size: 8.5px;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #071b34;
+}
+
+.rsheet-table th.c-subject .fm {
+    display: block;
+    margin-top: 1px;
+    font-size: 7px;
+    font-weight: 500;
+    color: #5c6b82;
+}
+
+.rsheet-table th.c-sub {
+    font-size: 7px;
+}
+
+.rsheet-table .c-roll {
+    width: 30px;
+    color: #5c6b82;
+}
+
+.rsheet-table .c-name {
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 500;
+    color: #071b34;
+}
+
+.rsheet-table td.c-sub {
+    font-size: 9.5px;
+}
+
+.rsheet-table td.gp {
+    color: #5c6b82;
+}
+
+.rsheet-table td.is-fail {
+    color: #b3261e;
+    font-weight: 600;
+}
+
+.rsheet-table td.is-blank {
+    color: #9aa7b8;
+}
+
+.rsheet-table .c-total {
+    font-weight: 600;
+    white-space: nowrap;
+    color: #071b34;
+}
+
+.rsheet-table .c-total .of {
+    font-weight: 400;
+    font-size: 7.5px;
+    color: #5c6b82;
+}
+
+.rsheet-table .c-gpa,
+.rsheet-table .c-grade {
+    font-weight: 700;
+    color: #071b34;
+}
+
+.rsheet-table .c-result {
+    white-space: nowrap;
+    font-size: 8.5px;
+}
+
+.rsheet-table .c-rank {
+    font-weight: 700;
+    color: #2866ac;
+}
+
+.rsheet-table tr.is-failed .c-result,
+.rsheet-table tr.is-failed .c-gpa,
+.rsheet-table tr.is-failed .c-grade {
+    color: #b3261e;
+}
+
+.rsheet-table tr.is-absent td {
+    color: #9aa7b8;
+}
+
+.rsheet-table tbody tr:nth-child(even) td {
+    background: #fbfcfd;
+}
+
+.rsheet-table tfoot td {
+    background: #f6f8fb;
+    font-size: 8px;
+    font-weight: 600;
+    color: #5c6b82;
+}
+
+.rsheet-table tfoot .c-foot-note {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* ---------- Foot: toppers, legend, signatures ---------- */
+
+.rsheet-foot {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.rsheet-foot td {
+    vertical-align: top;
+    padding: 0;
+}
+
+.rsheet-foot .k {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: #5c6b82;
+}
+
+.rsheet-toppers {
+    width: 40%;
+}
+
+.rsheet-toppers .topper {
+    display: block;
+    font-size: 10px;
+    color: #071b34;
+}
+
+.rsheet-toppers .topper em {
+    font-style: normal;
+    color: #5c6b82;
+}
+
+.rsheet-legend {
+    text-align: right;
+}
+
+.rsheet-legend .band {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 8.5px;
+    color: #233044;
+    white-space: nowrap;
+}
+
+.rsheet-legend .band.is-fail {
+    color: #b3261e;
+}
+
+.rsheet-signs {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 26px;
+}
+
+.rsheet-signs td {
+    width: 25%;
+    padding: 0 18px;
+    text-align: center;
+    font-size: 9px;
+    color: #5c6b82;
+}
+
+.rsheet-signs .v {
+    display: block;
+    height: 14px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #233044;
+    font-weight: 600;
+    color: #071b34;
+}
+
+/* ---------- Printing ---------- */
+
+/* Outside the @media block: DomPDF's parser loses everything after a nested
+   at-rule, and browsers honour a top-level @page when printing anyway. */
+@page {
+    size: A4 landscape;
+    margin: 10mm 9mm;
+}
+
+@media print {
+    .rsheet {
+        max-width: none;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .rsheet-table thead {
+        display: table-header-group;
+    }
+
+    .rsheet-foot,
+    .rsheet-signs {
+        page-break-inside: avoid;
+    }
+}

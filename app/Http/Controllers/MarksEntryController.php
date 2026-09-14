@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\PicksClass;
 use App\Models\GradeSystem;
 use App\Models\Student;
 use App\Models\StudentMark;
@@ -26,6 +27,8 @@ use Illuminate\Validation\ValidationException;
  */
 class MarksEntryController extends Controller
 {
+    use PicksClass;
+
     public const EXAMS = [
         'first_terminal' => 'First Terminal',
         'second_terminal' => 'Second Terminal',
@@ -60,25 +63,12 @@ class MarksEntryController extends Controller
     }
 
     /**
-     * What the page is filtered to. Nothing here is trusted yet - a school id
-     * outside the user's reach simply does not select, and the ledger is only
-     * built once every part is present.
+     * What the page is filtered to: the class, plus the subject and exam.
+     * The ledger is only built once every part is present.
      */
     private function filters(Request $request, array $allowedSchools): array
     {
-        $schoolId = (int) $request->input('school_id');
-
-        if (! in_array($schoolId, $allowedSchools, true)) {
-            // One school to choose from means it is chosen.
-            $schoolId = count($allowedSchools) === 1 ? $allowedSchools[0] : null;
-        }
-
-        $filters = [
-            'school_id' => $schoolId,
-            'class' => trim((string) $request->input('class')) ?: null,
-            'section' => trim((string) $request->input('section')) ?: null,
-            'academic_year' => preg_match('/^\d{4}$/', (string) $request->input('academic_year'))
-                ? $request->input('academic_year') : null,
+        $filters = $this->classFilters($request, $allowedSchools) + [
             'subject_id' => (int) $request->input('subject_id') ?: null,
             'exam_type' => array_key_exists($request->input('exam_type', ''), self::EXAMS)
                 ? $request->input('exam_type') : null,
@@ -87,28 +77,6 @@ class MarksEntryController extends Controller
         $filters['complete'] = ! in_array(null, $filters, true);
 
         return $filters;
-    }
-
-    /**
-     * Every class and section that has students, per school, for the cascading
-     * pickers. Small enough to ship whole: a few hundred entries at the most.
-     */
-    private function classMap(array $schoolIds): array
-    {
-        $map = [];
-
-        $rows = Student::whereIn('school_id', $schoolIds)
-            ->select('school_id', 'class', 'section')
-            ->distinct()
-            ->orderBy('class')
-            ->orderBy('section')
-            ->get();
-
-        foreach ($rows as $row) {
-            $map[$row->school_id][$row->class][] = $row->section;
-        }
-
-        return $map;
     }
 
     /**

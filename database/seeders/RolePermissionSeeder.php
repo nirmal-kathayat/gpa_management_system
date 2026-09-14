@@ -28,11 +28,13 @@ class RolePermissionSeeder extends Seeder
             'students.viewAny', 'students.create', 'students.update',
             'marks.viewAny', 'marks.update',
             'reports.viewAny', 'reports.create', 'reports.update', 'reports.delete', 'reports.pdf',
+            'results.viewAny', 'results.pdf',
             'subjects.viewAny', 'grades.viewAny',
         ],
         'staff' => [
             'students.viewAny',
             'reports.viewAny', 'reports.pdf',
+            'results.viewAny', 'results.pdf',
             'subjects.viewAny', 'grades.viewAny',
         ],
     ];

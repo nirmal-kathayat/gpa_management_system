@@ -12,6 +12,7 @@
         'students.*' => 'Students',
         'marks.*' => 'Marks Entry',
         'reports.*' => 'Report Cards',
+        'results.*' => 'Class Results',
         'schools.*' => 'Schools',
         'users.profile' => 'My Profile',
         'users.*' => 'Users',

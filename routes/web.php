@@ -9,6 +9,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GradeSystemController;
 use App\Http\Controllers\MarksEntryController;
+use App\Http\Controllers\ClassResultController;
 use App\Http\Controllers\BulkImportController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
@@ -78,6 +79,14 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
     Route::post('marks', [MarksEntryController::class, 'store'])
         ->name('marks.store')
         ->middleware('permission:marks.update');
+
+    // One exam's result for a whole class, on screen and as a landscape PDF.
+    Route::get('results', [ClassResultController::class, 'index'])
+        ->name('results.index')
+        ->middleware('permission:results.viewAny');
+    Route::get('results/pdf', [ClassResultController::class, 'pdf'])
+        ->name('results.pdf')
+        ->middleware('permission:results.pdf');
 
     $resource('reports', ReportController::class);
     Route::get('reports/{report}/pdf', [ReportController::class, 'downloadPdf'])

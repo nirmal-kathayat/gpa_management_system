@@ -21,6 +21,7 @@
             $navUser->can('grades.viewAny') ? ['route' => 'grades.index', 'match' => 'grades.*', 'icon' => 'fa-award', 'label' => 'Grade Scale'] : null,
             $navUser->can('marks.viewAny') ? ['route' => 'marks.index', 'match' => 'marks.*', 'icon' => 'fa-pen-to-square', 'label' => 'Marks Entry'] : null,
             $navUser->can('reports.viewAny') ? ['route' => 'reports.index', 'match' => 'reports.*', 'icon' => 'fa-file-lines', 'label' => 'Report Cards'] : null,
+            $navUser->can('results.viewAny') ? ['route' => 'results.index', 'match' => 'results.*', 'icon' => 'fa-table-list', 'label' => 'Class Results'] : null,
         ]))],
         ['label' => 'Tools', 'icon' => 'fa-screwdriver-wrench', 'items' => array_values(array_filter([
             $navUser->can('bulk-import.run') ? ['route' => 'bulk-import.index', 'match' => 'bulk-import.*', 'icon' => 'fa-upload', 'label' => 'Bulk Import'] : null,
