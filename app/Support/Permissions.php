@@ -28,6 +28,7 @@ class Permissions
     public const GROUPS = [
         'Academic records' => [
             'students' => ['label' => 'Students', 'icon' => 'fa-user-graduate', 'abilities' => ['viewAny', 'create', 'update', 'delete']],
+            'marks' => ['label' => 'Marks Entry', 'icon' => 'fa-pen-to-square', 'abilities' => ['viewAny', 'update']],
             'reports' => ['label' => 'Report Cards', 'icon' => 'fa-file-lines', 'abilities' => ['viewAny', 'create', 'update', 'delete', 'pdf']],
         ],
         'Academic setup' => [

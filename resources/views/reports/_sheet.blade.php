@@ -172,7 +172,7 @@
                     @endforeach
                 </table>
                 <div class="sheet-result {{ $failed ? 'is-fail' : '' }}">
-                    {{ $report->result_status ?: 'PASSED' }}
+                    {{ $report->result_status === 'PENDING' ? 'RESULT PENDING' : ($report->result_status ?: 'PASSED') }}
                 </div>
             </td>
             <td>

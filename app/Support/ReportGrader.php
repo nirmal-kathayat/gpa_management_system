@@ -16,6 +16,16 @@ use App\Models\Subject;
  */
 class ReportGrader
 {
+    /** The terminals a card records, in the order they are sat. */
+    public const EXAM_TYPES = ['first_terminal', 'second_terminal', 'final_terminal', 'pre_board'];
+
+    private ?GradeCalculator $calculator = null;
+
+    private function calculator(): GradeCalculator
+    {
+        return $this->calculator ??= new GradeCalculator();
+    }
+
     /**
      * Stores every mark on the form and works out the final result.
      *
@@ -26,21 +36,12 @@ class ReportGrader
      */
     public function grade(StudentReport $report, array $marks): array
     {
-        $calculator = new GradeCalculator();
         $subjects = Subject::whereIn('id', array_column($marks, 'subject_id'))->get()->keyBy('id');
-
-        $examTypes = ['first_terminal', 'second_terminal', 'final_terminal', 'pre_board'];
-
-        $totalGradePoints = 0;
-        $totalSubjects = 0;
-        $hasFailedSubject = false;
 
         foreach ($marks as $markData) {
             $subject = $subjects->get($markData['subject_id']);
-            $fullMarks = (float) ($subject->full_marks ?? 100);
-            $passMarks = $subject?->pass_marks !== null ? (float) $subject->pass_marks : null;
 
-            foreach ($examTypes as $examType) {
+            foreach (self::EXAM_TYPES as $examType) {
                 $theoryKey = $examType.'_th';
                 $practicalKey = $examType.'_pr';
 
@@ -48,44 +49,95 @@ class ReportGrader
                     continue;
                 }
 
-                $theoryMarks = (float) ($markData[$theoryKey] ?? 0);
-                $practicalMarks = (float) ($markData[$practicalKey] ?? 0);
-                $totalMarks = $theoryMarks + $practicalMarks;
-
-                $band = $calculator->forMarks($totalMarks, $fullMarks);
-                $failed = $calculator->fails($band, $totalMarks, $passMarks);
-
-                StudentMark::create([
-                    'student_id' => $report->student_id,
-                    'student_report_id' => $report->id,
-                    'subject_id' => $markData['subject_id'],
-                    'exam_type' => $examType,
-                    'theory_marks' => $theoryMarks,
-                    'practical_marks' => $practicalMarks,
-                    'total_marks' => $totalMarks,
-                    'letter_grade' => $band?->letter_grade ?? 'NG',
-                    'grade_point' => $failed ? 0 : ($band?->grade_point ?? 0),
-                    'academic_year' => $report->academic_year,
-                ]);
-
-                // Only the final terminal decides the year.
-                if ($examType !== 'final_terminal') {
-                    continue;
-                }
-
-                $totalSubjects++;
-
-                if ($failed) {
-                    $hasFailedSubject = true;
-                } else {
-                    $totalGradePoints += $band->grade_point;
-                }
+                StudentMark::create($this->markAttributes(
+                    $report,
+                    $subject,
+                    (int) $markData['subject_id'],
+                    $examType,
+                    $markData[$theoryKey] ?? null,
+                    $markData[$practicalKey] ?? null
+                ));
             }
         }
 
-        $gpa = $hasFailedSubject || $totalSubjects === 0
-            ? 0.0
-            : round($totalGradePoints / $totalSubjects, 2);
+        return $this->summarise($report);
+    }
+
+    /**
+     * The stored row for one subject in one exam: the two parts, their total,
+     * and the grade the scale gives that total against the subject's full
+     * marks. A failed subject is worth no grade points whatever its band says.
+     */
+    public function markAttributes(StudentReport $report, ?Subject $subject, int $subjectId, string $examType, $theory, $practical): array
+    {
+        $fullMarks = (float) ($subject->full_marks ?? 100);
+        $passMarks = $subject?->pass_marks !== null ? (float) $subject->pass_marks : null;
+
+        // A part that was not entered stays null - the sheet shows a dash, and
+        // the ledger shows an empty box - rather than becoming a zero mark.
+        $theoryMarks = $theory === null || $theory === '' ? null : (float) $theory;
+        $practicalMarks = $practical === null || $practical === '' ? null : (float) $practical;
+        $totalMarks = ($theoryMarks ?? 0) + ($practicalMarks ?? 0);
+
+        $band = $this->calculator()->forMarks($totalMarks, $fullMarks);
+        $failed = $this->calculator()->fails($band, $totalMarks, $passMarks);
+
+        return [
+            'student_id' => $report->student_id,
+            'student_report_id' => $report->id,
+            'subject_id' => $subjectId,
+            'exam_type' => $examType,
+            'theory_marks' => $theoryMarks,
+            'practical_marks' => $practicalMarks,
+            'total_marks' => $totalMarks,
+            'letter_grade' => $band?->letter_grade ?? 'NG',
+            'grade_point' => $failed ? 0 : ($band?->grade_point ?? 0),
+            'academic_year' => $report->academic_year,
+        ];
+    }
+
+    /**
+     * The card's result from the marks it holds. Read back from what is
+     * stored, so a card whose marks were written one subject at a time comes
+     * out the same as one saved from the full form.
+     */
+    public function summarise(StudentReport $report): array
+    {
+        $calculator = $this->calculator();
+
+        $finals = $report->marks()
+            ->where('exam_type', 'final_terminal')
+            ->with('subject')
+            ->get();
+
+        $totalGradePoints = 0;
+        $hasFailedSubject = false;
+
+        foreach ($finals as $mark) {
+            $fullMarks = (float) ($mark->subject->full_marks ?? 100);
+            $passMarks = $mark->subject?->pass_marks !== null ? (float) $mark->subject->pass_marks : null;
+
+            $band = $calculator->forMarks((float) $mark->total_marks, $fullMarks);
+
+            if ($calculator->fails($band, (float) $mark->total_marks, $passMarks)) {
+                $hasFailedSubject = true;
+            } else {
+                $totalGradePoints += $band->grade_point;
+            }
+        }
+
+        // Marks arrive a subject and a terminal at a time, so a card can exist
+        // before its final terminal does. It has no result yet, not a pass.
+        if ($finals->isEmpty()) {
+            return [
+                'final_gpa' => 0.0,
+                'final_grade' => '',
+                'result_status' => 'PENDING',
+                'result_remarks' => 'Final terminal marks have not been entered yet.',
+            ];
+        }
+
+        $gpa = $hasFailedSubject ? 0.0 : round($totalGradePoints / $finals->count(), 2);
 
         $result = $calculator->resultFor($gpa, $hasFailedSubject);
 
@@ -97,6 +149,24 @@ class ReportGrader
             'result_status' => $result['status'],
             'result_remarks' => $result['remarks'],
         ];
+    }
+
+    /**
+     * Grades every stored mark again under the current rules and scale, then
+     * the card. For when the rules change after cards have been issued.
+     */
+    public function regrade(StudentReport $report): array
+    {
+        foreach ($report->marks()->with('subject')->get() as $mark) {
+            $mark->update($this->markAttributes(
+                $report, $mark->subject, $mark->subject_id, $mark->exam_type, $mark->theory_marks, $mark->practical_marks
+            ));
+        }
+
+        $graded = $this->summarise($report);
+        $report->update($graded);
+
+        return $graded;
     }
 
     /**

@@ -19,6 +19,7 @@
         ['label' => 'Academics', 'icon' => 'fa-book-open', 'items' => array_values(array_filter([
             $navUser->can('subjects.viewAny') ? ['route' => 'subjects.index', 'match' => 'subjects.*', 'icon' => 'fa-book', 'label' => 'Subjects'] : null,
             $navUser->can('grades.viewAny') ? ['route' => 'grades.index', 'match' => 'grades.*', 'icon' => 'fa-award', 'label' => 'Grade Scale'] : null,
+            $navUser->can('marks.viewAny') ? ['route' => 'marks.index', 'match' => 'marks.*', 'icon' => 'fa-pen-to-square', 'label' => 'Marks Entry'] : null,
             $navUser->can('reports.viewAny') ? ['route' => 'reports.index', 'match' => 'reports.*', 'icon' => 'fa-file-lines', 'label' => 'Report Cards'] : null,
         ]))],
         ['label' => 'Tools', 'icon' => 'fa-screwdriver-wrench', 'items' => array_values(array_filter([

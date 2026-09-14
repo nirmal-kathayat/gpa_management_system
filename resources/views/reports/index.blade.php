@@ -76,7 +76,9 @@
                     name: 'Result', field: 'result_status',
                     render: (r) => r.result_status === 'FAILED'
                         ? '<span class="badge bg-danger">Failed</span>'
-                        : '<span class="badge bg-success">Passed</span>'
+                        : r.result_status === 'PENDING'
+                            ? '<span class="badge bg-secondary">Pending</span>'
+                            : '<span class="badge bg-success">Passed</span>'
                 },
                 { name: 'Issue Date', field: 'issue_date' },
                 {
@@ -130,7 +132,11 @@
                     { field: 'final_grade', type: 'text', param: 'final_grade', placeholder: 'Grade' },
                     {
                         field: 'result_status', type: 'select', param: 'result_status', allowBlank: true,
-                        options: [{ value: 'PASSED', label: 'Passed' }, { value: 'FAILED', label: 'Failed' }]
+                        options: [
+                            { value: 'PASSED', label: 'Passed' },
+                            { value: 'FAILED', label: 'Failed' },
+                            { value: 'PENDING', label: 'Pending' }
+                        ]
                     }
                 ]
             }

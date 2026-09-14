@@ -27,25 +27,9 @@ class RegradeReports extends Command
         // One transaction for the whole run: a dry run is simply never committed.
         DB::beginTransaction();
 
-        foreach (StudentReport::with('marks', 'student')->cursor() as $report) {
-            // Back into the shape the form posts, so the grader runs the same
-            // code path a save does.
-            $marks = [];
-            foreach ($report->marks as $mark) {
-                $marks[$mark->subject_id]['subject_id'] = $mark->subject_id;
-                $marks[$mark->subject_id][$mark->exam_type.'_th'] = $mark->theory_marks;
-                $marks[$mark->subject_id][$mark->exam_type.'_pr'] = $mark->practical_marks;
-            }
-
-            if (! $marks) {
-                continue;
-            }
-
+        foreach (StudentReport::with('student')->cursor() as $report) {
             $before = $report->only(['final_gpa', 'final_grade', 'result_status']);
-
-            $report->marks()->delete();
-            $after = $grader->grade($report, array_values($marks));
-            $report->update($after);
+            $after = $grader->regrade($report);
 
             if (round((float) $before['final_gpa'], 2) !== round((float) $after['final_gpa'], 2)
                 || $before['final_grade'] !== $after['final_grade']

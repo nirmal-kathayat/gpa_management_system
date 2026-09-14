@@ -1728,6 +1728,93 @@ input[type="file"].form-input::file-selector-button:hover {
     color: var(--muted);
 }
 
+/* ---- Marks entry ledger ------------------------------------------------ */
+
+.ledger-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+/* How many of the class have a mark; kept in step as they are typed. */
+.ledger-progress {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ledger-table th:nth-child(2),
+.ledger-table td.marks-subject {
+    text-align: left;
+    width: 100%;
+}
+
+.ledger-table td {
+    text-align: center;
+}
+
+.ledger-roll {
+    width: 56px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.ledger-total {
+    min-width: 72px;
+    font-weight: 600;
+    color: var(--navy);
+}
+
+.ledger-grade {
+    min-width: 72px;
+}
+
+.ledger-table .marks-input {
+    width: 96px;
+}
+
+.grade-pill {
+    display: inline-block;
+    min-width: 34px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.grade-pill.is-fail {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.ledger-foot {
+    justify-content: space-between;
+}
+
+.ledger-foot .form-hint {
+    margin: 0;
+}
+
+.ledger-foot kbd {
+    padding: 1px 6px;
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #fff;
+    font: inherit;
+    font-size: 11px;
+    color: var(--ink);
+}
+
 /* Column lists on the bulk import screen. */
 .import-columns {
     margin: 6px 0 0;
@@ -2745,7 +2832,12 @@ input[type="file"].form-input::file-selector-button:hover {
 
 /* ---------- Select2, wearing .form-input ---------- */
 
-.select2-container {
+/*
+ * Only the control that replaces the <select>. Select2 hangs the open
+ * dropdown off <body> in a container of its own, sized inline to match
+ * the control; forcing that to 100% ran it off the right of the page.
+ */
+select + .select2-container {
     width: 100% !important;
 }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GradeSystemController;
+use App\Http\Controllers\MarksEntryController;
 use App\Http\Controllers\BulkImportController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
@@ -64,6 +65,15 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
         ->middleware('permission:students.viewAny|reports.create|reports.update');
 
     $resource('students', StudentController::class);
+
+    // One subject's marks for a whole class at once. Every saved mark lands on
+    // the student's report card for that year, created if they have none yet.
+    Route::get('marks', [MarksEntryController::class, 'index'])
+        ->name('marks.index')
+        ->middleware('permission:marks.viewAny');
+    Route::post('marks', [MarksEntryController::class, 'store'])
+        ->name('marks.store')
+        ->middleware('permission:marks.update');
 
     $resource('reports', ReportController::class);
     Route::get('reports/{report}/pdf', [ReportController::class, 'downloadPdf'])

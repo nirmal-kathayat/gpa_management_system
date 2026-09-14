@@ -39,7 +39,10 @@ class ReportController extends Controller
                 'class' => ['class', 'exact'],
                 'academic_year' => ['academic_year', 'exact'],
                 'final_grade' => 'final_grade',
-                'result_status' => ['result_status', 'exact'],
+                // Every pass is 'PASSED WITH ...', so the filter matches the family.
+                'result_status' => fn ($q, $v) => $v === 'PASSED'
+                    ? $q->where('result_status', 'like', 'PASSED%')
+                    : $q->where('result_status', $v),
             ],
             'sort' => [
                 'academic_year' => 'academic_year',
@@ -87,7 +90,7 @@ class ReportController extends Controller
             'years' => StudentReport::distinct()->orderByDesc('academic_year')->pluck('academic_year'),
             'classes' => (clone $base)->distinct()->orderBy('class')->pluck('class'),
             'totalReports' => (clone $base)->count(),
-            'passedCount' => (clone $base)->where(fn ($q) => $q->where('result_status', '!=', 'FAILED')
+            'passedCount' => (clone $base)->where(fn ($q) => $q->where('result_status', 'like', 'PASSED%')
                 ->orWhereNull('result_status'))->count(),
             'failedCount' => (clone $base)->where('result_status', 'FAILED')->count(),
             'averageGpa' => round((float) (clone $base)->avg('final_gpa'), 2),

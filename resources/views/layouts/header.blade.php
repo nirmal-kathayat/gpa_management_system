@@ -10,6 +10,7 @@
     $sectionTitles = [
         'dashboard' => 'Dashboard',
         'students.*' => 'Students',
+        'marks.*' => 'Marks Entry',
         'reports.*' => 'Report Cards',
         'schools.*' => 'Schools',
         'users.profile' => 'My Profile',

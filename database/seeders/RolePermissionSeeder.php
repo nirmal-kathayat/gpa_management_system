@@ -26,6 +26,7 @@ class RolePermissionSeeder extends Seeder
     private const EXAMPLE_ROLES = [
         'teacher' => [
             'students.viewAny', 'students.create', 'students.update',
+            'marks.viewAny', 'marks.update',
             'reports.viewAny', 'reports.create', 'reports.update', 'reports.delete', 'reports.pdf',
             'subjects.viewAny', 'grades.viewAny',
         ],
