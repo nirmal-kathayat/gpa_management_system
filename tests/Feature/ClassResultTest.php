@@ -163,6 +163,42 @@ class ClassResultTest extends TestCase
         $this->assertSame([1, 1, 3], $this->sheet()->rows->pluck('rank')->all());
     }
 
+    public function test_a_class_of_mark_sheets_downloads_as_one_pdf_a_page_each(): void
+    {
+        $this->student('Ram', 1, [['subject_id' => $this->maths->id, 'final_terminal_th' => 80]]);
+        $this->student('Sita', 2, [['subject_id' => $this->maths->id, 'final_terminal_th' => 60]]);
+        $this->student('Hari', 3, [['subject_id' => $this->maths->id, 'final_terminal_th' => 40]]);
+
+        $filters = array_diff_key($this->filters(), ['exam_type' => 1]);
+
+        $this->actingAs($this->admin)->get(route('results.index', $this->filters()))
+            ->assertOk()
+            ->assertSee('All Mark Sheets')
+            ->assertSee(e(route('reports.class-pdf', $filters)), false);
+
+        $response = $this->actingAs($this->admin)->get(route('reports.class-pdf', $filters));
+        $response->assertOk()
+            ->assertHeader('content-disposition', 'attachment; filename="mark-sheets-class-10-A-2081.pdf"');
+
+        $content = $response->getContent();
+        $this->assertStringStartsWith('%PDF', $content);
+        // One page per student.
+        $this->assertSame(3, preg_match_all('#/Type\s*/Page[^s]#', $content));
+
+        // A year with no cards has nothing to print.
+        $this->actingAs($this->admin)->get(route('reports.class-pdf', ['academic_year' => '2080'] + $filters))
+            ->assertNotFound();
+
+        // Another school's class is out of reach, and half a filter is nothing.
+        $other = School::create(['name' => 'Other', 'address' => 'Pokhara']);
+        Role::findOrCreate('printer', 'web')->givePermissionTo(['reports.pdf']);
+        $printer = User::create(['name' => 'P', 'username' => 'p', 'email' => 'p@b.c', 'password' => 'secret123', 'is_active' => true, 'school_id' => $other->id]);
+        $printer->assignRole('printer');
+
+        $this->actingAs($printer)->get(route('reports.class-pdf', $filters))->assertNotFound();
+        $this->actingAs($this->admin)->get(route('reports.class-pdf', ['class' => '10']))->assertNotFound();
+    }
+
     public function test_the_page_and_the_pdf_are_scoped_to_the_users_school(): void
     {
         $this->student('Ram', 1, [['subject_id' => $this->maths->id, 'final_terminal_th' => 80]]);

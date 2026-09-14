@@ -88,6 +88,11 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
         ->name('results.pdf')
         ->middleware('permission:results.pdf');
 
+    // Before the resource, so /reports/class-pdf is not read as a report id.
+    Route::get('reports/class-pdf', [ReportController::class, 'downloadClassPdf'])
+        ->name('reports.class-pdf')
+        ->middleware('permission:reports.pdf');
+
     $resource('reports', ReportController::class);
     Route::get('reports/{report}/pdf', [ReportController::class, 'downloadPdf'])
         ->name('reports.pdf')

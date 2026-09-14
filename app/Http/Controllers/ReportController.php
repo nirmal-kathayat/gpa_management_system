@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\PicksClass;
 use App\Models\Student;
 use App\Models\StudentReport;
 use App\Models\StudentMark;
@@ -17,6 +18,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
+    use PicksClass;
+
     public function __construct(private readonly ReportGrader $grader)
     {
     }
@@ -251,9 +254,9 @@ class ReportController extends Controller
      * active list - deactivating a subject used to make it vanish from every
      * report card ever issued.
      */
-    private function reportCard(StudentReport $report): array
+    private function reportCard(StudentReport $report, $gradeSystem = null): array
     {
-        $report->load('student.school');
+        $report->loadMissing('student.school');
 
         $marks = $report->marks()->with('subject')->get();
 
@@ -261,7 +264,7 @@ class ReportController extends Controller
             'report' => $report,
             'marks' => $marks->groupBy(['subject_id', 'exam_type']),
             'subjects' => $marks->pluck('subject')->filter()->unique('id')->sortBy('name')->values(),
-            'gradeSystem' => GradeSystem::active()->ordered()->get(),
+            'gradeSystem' => $gradeSystem ?? GradeSystem::active()->ordered()->get(),
         ];
     }
 
@@ -326,6 +329,49 @@ class ReportController extends Controller
         $pdf = Pdf::loadView('reports.pdf', $this->reportCard($report));
 
         return $pdf->download('report-'.$report->student->name.'-'.$report->academic_year.'.pdf');
+    }
+
+    /**
+     * Every mark sheet of a class in one PDF, one page per student in roll
+     * order - so a class's cards are printed in one go rather than forty
+     * downloads.
+     */
+    public function downloadClassPdf(Request $request)
+    {
+        $filters = $this->classFilters($request, $this->selectableSchools()->pluck('id')->all());
+
+        abort_if(in_array(null, $filters, true), 404);
+
+        $this->authorizeSchool($filters['school_id']);
+
+        $reports = StudentReport::with('student.school')
+            ->where('academic_year', $filters['academic_year'])
+            ->where('class', $filters['class'])
+            ->where('section', $filters['section'])
+            ->whereHas('student', fn ($q) => $q->where('school_id', $filters['school_id']))
+            ->orderBy('roll_number')
+            ->get();
+
+        abort_if($reports->isEmpty(), 404, 'No report cards for that class and year.');
+
+        // The scale is the same for every card, so it is read once.
+        $gradeSystem = GradeSystem::active()->ordered()->get();
+
+        $cards = $reports->map(fn ($report) => $this->reportCard($report, $gradeSystem));
+
+        // A class of forty is forty pages of tables; give DomPDF the time.
+        set_time_limit(300);
+
+        $pdf = Pdf::loadView('reports.pdf-bulk', [
+            'cards' => $cards,
+            'class' => $filters['class'],
+            'section' => $filters['section'],
+            'academicYear' => $filters['academic_year'],
+        ]);
+
+        return $pdf->download(sprintf(
+            'mark-sheets-class-%s-%s-%s.pdf', $filters['class'], $filters['section'], $filters['academic_year']
+        ));
     }
 
     public function destroy(StudentReport $report)

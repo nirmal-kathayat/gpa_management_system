@@ -52,6 +52,13 @@
                 <button type="button" class="btn-ghost" onclick="window.print()">
                     <i class="fas fa-print"></i>Print
                 </button>
+                @can('reports.pdf')
+                    {{-- The class's report cards, one page each, in roll order. --}}
+                    <a href="{{ route('reports.class-pdf', Arr::except($filters, ['complete', 'exam_type'])) }}" class="btn-ghost"
+                       title="Every student's mark sheet for {{ $filters['academic_year'] }} in one PDF">
+                        <i class="fas fa-file-pdf"></i>All Mark Sheets
+                    </a>
+                @endcan
                 @can('results.pdf')
                     <a href="{{ route('results.pdf', Arr::except($filters, 'complete')) }}" class="btn-primary-flat">
                         <i class="fas fa-file-arrow-down"></i>Download PDF
