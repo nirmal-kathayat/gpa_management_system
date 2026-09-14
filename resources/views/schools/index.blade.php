@@ -64,10 +64,22 @@
                         @can('schools.delete')
                         {
                             type: 'delete', showLabel: false, title: 'Delete',
-                            onClick: (row) => window.tableDelete('/schools/' + row.id, {
-                                title: 'Delete school?',
-                                message: row.name + ' will be removed, along with every student in it.'
-                            })
+                            onClick: (row) => {
+                                // Say exactly what goes with it, from the row's own counts.
+                                const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+                                const gone = [];
+                                if (row.students_count) gone.push(plural(row.students_count, 'student'));
+                                if (row.reports_count) gone.push(plural(row.reports_count, 'report card'));
+
+                                let message = row.name + ' will be removed'
+                                    + (gone.length ? ', along with its ' + gone.join(' and ') : '') + '.';
+                                if (row.users_count) {
+                                    message += ' ' + plural(row.users_count, 'user') + ' will be left without a school.';
+                                }
+                                message += ' This cannot be undone.';
+
+                                window.tableDelete('/schools/' + row.id, { title: 'Delete school?', message });
+                            }
                         },
                         @endcan
                     ]

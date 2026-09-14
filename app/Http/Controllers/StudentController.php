@@ -83,7 +83,7 @@ class StudentController extends Controller
      */
     public function list(Request $request)
     {
-        $query = auth()->user()->getAccessibleStudents()->with('school:id,name');
+        $query = auth()->user()->getAccessibleStudents()->with('school:id,name')->withCount('reports');
 
         // The school detail page reuses this endpoint for one school only. It is
         // applied here, not as a filter, so a search inside the grid cannot widen
@@ -118,6 +118,8 @@ class StudentController extends Controller
             'roll_number' => $student->roll_number,
             'school' => $student->school->name ?? '-',
             'is_active' => (int) $student->is_active,
+            // So the delete confirmation can say how many report cards go too.
+            'reports_count' => $student->reports_count,
         ]);
     }
 
@@ -222,7 +224,14 @@ class StudentController extends Controller
     {
         $this->authorizeSchool($student->school_id);
 
+        $reports = $student->reports()->count();
+
         $student->delete();
-        return redirect()->route('students.index')->with('success', 'Student deleted successfully!');
+
+        return redirect()->route('students.index')->with(
+            'success',
+            $student->name.' has been deleted'
+            .($reports ? ', along with '.$reports.' report card'.($reports === 1 ? '' : 's') : '').'.'
+        );
     }
 }

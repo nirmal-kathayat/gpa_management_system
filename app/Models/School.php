@@ -26,4 +26,14 @@ class School extends Model
     {
         return $this->hasMany(Student::class);
     }
+
+    public function reports()
+    {
+        return $this->hasManyThrough(StudentReport::class, Student::class);
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
 }

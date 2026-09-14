@@ -68,7 +68,7 @@
                             type: 'delete', showLabel: false, title: 'Delete',
                             onClick: (row) => window.tableDelete('/subjects/' + row.id, {
                                 title: 'Delete subject?',
-                                message: row.name + ' will no longer be available on new report cards.'
+                                message: row.name + ' will be removed. A subject that is already on a report card cannot be deleted - deactivate it instead.'
                             })
                         },
                         @endcan

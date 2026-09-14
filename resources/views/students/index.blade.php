@@ -62,7 +62,11 @@
                             type: 'delete', showLabel: false, title: 'Delete',
                             onClick: (row) => window.tableDelete('/students/' + row.id, {
                                 title: 'Delete student?',
-                                message: row.name + ' and every report card belonging to them will be removed.'
+                                message: row.name + ' will be removed'
+                                    + (row.reports_count
+                                        ? ', along with ' + row.reports_count + ' report card' + (row.reports_count === 1 ? '' : 's')
+                                        : '')
+                                    + '. This cannot be undone.'
                             })
                         },
                         @endcan

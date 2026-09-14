@@ -13,7 +13,7 @@ class SchoolController extends Controller
      */
     public function list(Request $request)
     {
-        return TableResponse::make($request, School::withCount('students'), [
+        return TableResponse::make($request, School::withCount(['students', 'reports', 'users']), [
             'search' => ['name', 'address', 'email'],
             'filters' => [
                 'name' => 'name',
@@ -41,6 +41,9 @@ class SchoolController extends Controller
             'email' => $school->email,
             'logo' => $school->logo,
             'students_count' => $school->students_count,
+            // So the delete confirmation can say what goes with the school.
+            'reports_count' => $school->reports_count,
+            'users_count' => $school->users_count,
         ]);
     }
 
@@ -115,6 +118,8 @@ class SchoolController extends Controller
 
     public function show(School $school)
     {
+        $this->authorizeSchool($school->id);
+
         $students = $school->students();
 
         return view('schools.show', [
@@ -132,6 +137,8 @@ class SchoolController extends Controller
 
     public function update(Request $request, School $school)
     {
+        $this->authorizeSchool($school->id);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:50',
@@ -178,9 +185,31 @@ class SchoolController extends Controller
         return redirect()->route($this->backTo($request))->with('success', 'School updated successfully!');
     }
 
+    /**
+     * Deleting a school takes its students and their report cards with it,
+     * and leaves its users without a school. The grid's confirmation says so
+     * with the real numbers; here the message records what actually went.
+     */
     public function destroy(School $school)
     {
+        $this->authorizeSchool($school->id);
+
+        $students = $school->students()->count();
+        $reports = $school->reports()->count();
+
         $school->delete();
-        return redirect()->route('schools.index')->with('success', 'School deleted successfully!');
+
+        $gone = [];
+        if ($students) {
+            $gone[] = $students.' student'.($students === 1 ? '' : 's');
+        }
+        if ($reports) {
+            $gone[] = $reports.' report card'.($reports === 1 ? '' : 's');
+        }
+
+        return redirect()->route('schools.index')->with(
+            'success',
+            $school->name.' has been deleted'.($gone ? ', along with '.implode(' and ', $gone) : '').'.'
+        );
     }
 }

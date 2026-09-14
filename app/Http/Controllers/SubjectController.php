@@ -125,8 +125,25 @@ class SubjectController extends Controller
         return redirect()->route($this->backTo($request))->with('success', 'Subject updated successfully!');
     }
 
+    /**
+     * A subject with marks against it cannot be deleted: the marks would go
+     * with it and every report card they sit on would keep a GPA worked out
+     * from subjects that are no longer there. Deactivating is the way to
+     * retire one - it drops off new cards and the old ones keep their marks.
+     */
     public function destroy(Subject $subject)
     {
+        $cards = $subject->marks()->distinct()->count('student_report_id');
+
+        if ($cards > 0) {
+            return redirect()->route('subjects.index')->with(
+                'error',
+                $subject->name.' is on '.$cards.' report card'.($cards === 1 ? '' : 's')
+                .' and cannot be deleted. Deactivate it instead: it will stop appearing on new report cards'
+                .' and the existing ones keep their marks.'
+            );
+        }
+
         $subject->delete();
         return redirect()->route('subjects.index')->with('success', 'Subject deleted successfully!');
     }
