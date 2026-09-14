@@ -72,7 +72,7 @@ class RegradeReports extends Command
         // Ranks are within a class and year, so one pass per group is enough.
         StudentReport::with('student')->get()
             ->unique(fn ($r) => implode('|', [
-                $r->student?->school_id, $r->student?->class, $r->student?->section, $r->academic_year,
+                $r->student?->school_id, $r->class, $r->section, $r->academic_year,
             ]))
             ->each(fn ($r) => $grader->recalculatePositions($r));
 

@@ -20,7 +20,7 @@
         <h2 class="detail-title">Mark Sheet</h2>
         <p class="detail-sub">
             {{ $report->student->name }} &nbsp;·&nbsp;
-            Class {{ $report->student->class }}{{ $report->student->section ? ' '.$report->student->section : '' }}
+            Class {{ $report->class }}{{ $report->section ? ' '.$report->section : '' }}
             &nbsp;·&nbsp; {{ $report->academic_year }}
         </p>
     </div>

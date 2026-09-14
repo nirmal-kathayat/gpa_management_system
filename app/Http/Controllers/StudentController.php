@@ -62,6 +62,10 @@ class StudentController extends Controller
                 'text' => static::studentLabel($student),
                 'school' => $student->school->name,
                 'inactive' => ! $student->is_active,
+                // The report form copies these in as the card's own class.
+                'class' => $student->class,
+                'section' => $student->section,
+                'roll_number' => $student->roll_number,
             ]),
             'pagination' => ['more' => $page * $perPage < $total],
         ]);

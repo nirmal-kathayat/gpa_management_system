@@ -121,8 +121,13 @@ class DemoDataSeeder extends Seeder
                         'is_active' => true,
                     ]);
 
+                    // The last year is the class the student is in now; each
+                    // earlier year's card was issued one class lower.
+                    $latest = count(self::YEARS) - 1;
+
                     foreach (self::YEARS as $yearIndex => $year) {
-                        $this->buildReport($grader, $student, $subjects, $year, $ability + ($yearIndex * 0.04), $index);
+                        $this->buildReport($grader, $student, $subjects, $year, $ability + ($yearIndex * 0.04), $index,
+                            (string) max(1, (int) $class - ($latest - $yearIndex)));
                     }
                 }
             }
@@ -133,7 +138,7 @@ class DemoDataSeeder extends Seeder
      * Builds one report card the way the form does: create it, grade its marks,
      * write the totals back.
      */
-    private function buildReport(ReportGrader $grader, Student $student, $subjects, string $year, float $ability, int $seed): void
+    private function buildReport(ReportGrader $grader, Student $student, $subjects, string $year, float $ability, int $seed, string $class): void
     {
         $marks = [];
 
@@ -163,6 +168,9 @@ class DemoDataSeeder extends Seeder
         $report = StudentReport::create([
             'student_id' => $student->id,
             'academic_year' => $year,
+            'class' => $class,
+            'section' => $student->section,
+            'roll_number' => $student->roll_number,
             'final_gpa' => 0,
             'final_grade' => '',
             'attendance_days' => 200 + ($seed % 15),

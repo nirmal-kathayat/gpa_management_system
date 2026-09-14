@@ -103,6 +103,10 @@ class ReportGrader
      * Positions are a rank within a class: same school, class, section and
      * academic year, ordered by GPA. Redone whenever a report in that group
      * changes, since one new report can move everybody below it.
+     *
+     * The class is the one written on the report, not the one the student is
+     * in now - a promoted student's old cards stay ranked against their old
+     * classmates.
      */
     public function recalculatePositions(StudentReport $report): void
     {
@@ -113,10 +117,9 @@ class ReportGrader
         }
 
         $reports = StudentReport::where('academic_year', $report->academic_year)
-            ->whereHas('student', fn ($q) => $q
-                ->where('school_id', $student->school_id)
-                ->where('class', $student->class)
-                ->where('section', $student->section))
+            ->where('class', $report->class)
+            ->where('section', $report->section)
+            ->whereHas('student', fn ($q) => $q->where('school_id', $student->school_id))
             ->orderByDesc('final_gpa')
             ->orderBy('id')
             ->get();

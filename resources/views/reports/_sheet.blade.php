@@ -44,9 +44,10 @@
 
     $identity = [
         'Name' => $student->name,
-        'Class' => $student->class,
-        'Section' => $student->section ?: '-',
-        'Roll No.' => $student->roll_number,
+        // The class on the card, not the one the student is in today.
+        'Class' => $report->class,
+        'Section' => $report->section ?: '-',
+        'Roll No.' => $report->roll_number,
         'Symbol No.' => $student->symbol_number ?: '-',
     ];
 

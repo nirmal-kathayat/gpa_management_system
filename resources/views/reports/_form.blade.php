@@ -72,6 +72,42 @@
                 <p class="form-hint">Four digits, e.g. 2081.</p>
             @enderror
         </div>
+
+        {{--
+            Written on the card itself. They are filled from the chosen student
+            and can be corrected, so a card issued for class 9 still says class 9
+            after the student moves up.
+        --}}
+        @php
+            $snapshot = fn ($field) => old($field, $report?->$field ?? $chosenStudent?->$field);
+        @endphp
+        <div class="form-field is-third">
+            <label class="form-label" for="class">Class <span class="req">*</span></label>
+            <input type="text" id="class" name="class" required maxlength="50" data-from-student="class"
+                   value="{{ $snapshot('class') }}"
+                   class="form-input @error('class') is-invalid @enderror">
+            @error('class')<p class="form-error">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="form-field is-third">
+            <label class="form-label" for="section">Section <span class="req">*</span></label>
+            <input type="text" id="section" name="section" required maxlength="10" data-from-student="section"
+                   value="{{ $snapshot('section') }}"
+                   class="form-input @error('section') is-invalid @enderror">
+            @error('section')<p class="form-error">{{ $message }}</p>@enderror
+        </div>
+
+        <div class="form-field is-third">
+            <label class="form-label" for="roll_number">Roll No. <span class="req">*</span></label>
+            <input type="number" id="roll_number" name="roll_number" required min="1" data-from-student="roll_number"
+                   value="{{ $snapshot('roll_number') }}"
+                   class="form-input @error('roll_number') is-invalid @enderror">
+            @error('roll_number')
+                <p class="form-error">{{ $message }}</p>
+            @else
+                <p class="form-hint">As the student was enrolled that year.</p>
+            @enderror
+        </div>
     </div>
 </div>
 
@@ -243,8 +279,18 @@
 
         // Select2 hides the original <select>, so the shared validator cannot
         // focus it; point it at the control the user can actually see.
-        $('[data-student-select]').on('select2:select', function () {
+        $('[data-student-select]').on('select2:select', function (event) {
             $(this).removeClass('is-invalid').closest('.form-field').find('.form-error.is-client').remove();
+
+            // Picking a student writes their current class onto the card; the
+            // fields stay editable for a card being issued for an earlier year.
+            const student = event.params.data;
+            $('[data-from-student]').each(function () {
+                const value = student[this.dataset.fromStudent];
+                if (value !== undefined && value !== null) {
+                    this.value = value;
+                }
+            });
         });
     });
 </script>

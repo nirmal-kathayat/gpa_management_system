@@ -209,6 +209,7 @@
                     <thead>
                         <tr>
                             <th>Year</th>
+                            <th>Class</th>
                             <th>GPA</th>
                             <th>Grade</th>
                             <th class="cell-actions no-print">Action</th>
@@ -218,6 +219,7 @@
                         @foreach($reports->take(6) as $report)
                             <tr>
                                 <td>{{ $report->academic_year }}</td>
+                                <td>{{ trim($report->class.' '.$report->section) }}</td>
                                 <td>{{ number_format((float) $report->final_gpa, 2) }}</td>
                                 <td>{{ $report->final_grade ?: '—' }}</td>
                                 <td class="cell-actions no-print">

@@ -12,6 +12,11 @@ class StudentReport extends Model
     protected $fillable = [
         'student_id',
         'academic_year',
+        // The class, section and roll number at the time the card was issued.
+        // A student moves on; a report card does not.
+        'class',
+        'section',
+        'roll_number',
         'final_gpa',
         'final_grade',
         'position',

@@ -36,7 +36,7 @@ class ReportController extends Controller
             ],
             'filters' => [
                 'student' => fn ($q, $v) => $q->whereHas('student', fn ($s) => $s->where('name', 'like', '%'.$v.'%')),
-                'class' => fn ($q, $v) => $q->whereHas('student', fn ($s) => $s->where('class', $v)),
+                'class' => ['class', 'exact'],
                 'academic_year' => ['academic_year', 'exact'],
                 'final_grade' => 'final_grade',
                 'result_status' => ['result_status', 'exact'],
@@ -52,7 +52,7 @@ class ReportController extends Controller
         ], fn ($report) => [
             'id' => $report->id,
             'student' => $report->student->name ?? '-',
-            'class' => trim(($report->student->class ?? '').' - '.($report->student->section ?? ''), ' -'),
+            'class' => trim($report->class.' - '.$report->section, ' -'),
             'academic_year' => $report->academic_year,
             'position' => $report->position,
             'final_gpa' => number_format((float) $report->final_gpa, 2),
@@ -85,8 +85,7 @@ class ReportController extends Controller
 
         return view('reports.index', [
             'years' => StudentReport::distinct()->orderByDesc('academic_year')->pluck('academic_year'),
-            'classes' => Student::whereIn('id', auth()->user()->getAccessibleStudents()->select('id'))
-                ->distinct()->orderBy('class')->pluck('class'),
+            'classes' => (clone $base)->distinct()->orderBy('class')->pluck('class'),
             'totalReports' => (clone $base)->count(),
             'passedCount' => (clone $base)->where(fn ($q) => $q->where('result_status', '!=', 'FAILED')
                 ->orWhereNull('result_status'))->count(),
@@ -124,6 +123,10 @@ class ReportController extends Controller
                     ->ignore($report?->id),
             ],
             'academic_year' => ['required', 'regex:/^\d{4}$/'],
+            // Written on the card, since the student's own record moves on.
+            'class' => 'required|string|max:50',
+            'section' => 'required|string|max:10',
+            'roll_number' => 'required|integer|min:1',
             'marks' => 'required|array',
             'marks.*.subject_id' => 'required|exists:subjects,id',
             'attendance_days' => 'nullable|integer|min:0',
@@ -214,6 +217,9 @@ class ReportController extends Controller
         return [
             'student_id' => $validated['student_id'],
             'academic_year' => $validated['academic_year'],
+            'class' => $validated['class'],
+            'section' => $validated['section'],
+            'roll_number' => $validated['roll_number'],
             'attendance_days' => $validated['attendance_days'] ?? null,
             'total_days' => $validated['total_days'] ?? null,
             'remarks' => $validated['remarks'] ?? null,
@@ -330,6 +336,8 @@ class ReportController extends Controller
                 (new StudentReport())->forceFill([
                     'student_id' => $student->id,
                     'academic_year' => $academicYear,
+                    'class' => $report->class,
+                    'section' => $report->section,
                 ])
             );
         }
