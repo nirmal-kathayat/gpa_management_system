@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SchoolClass;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,9 +27,6 @@ class BulkImportController extends Controller
     /** Enough for a whole school; beyond this the file wants splitting. */
     private const MAX_ROWS = 2000;
 
-    /** The class the template's example row is filed under. */
-    private const SAMPLE_CLASS = '10';
-    private const SAMPLE_SECTION = 'A';
 
     public function index()
     {
@@ -184,11 +182,19 @@ class BulkImportController extends Controller
                     'date_of_birth.date_format' => 'The date of birth must be written as YYYY-MM-DD.',
                 ]);
 
-                if ($validator->fails()) {
+                // fails() re-runs the rules and empties the bag, so the class
+                // check is a separate reason rather than an added message.
+                $reason = $validator->fails() ? implode(' ', $validator->errors()->all()) : null;
+
+                if ($reason === null && ! SchoolClass::runs((int) $data['school_id'], $data['class'], $data['section'])) {
+                    $reason = 'That school does not run class '.$data['class'].' '.$data['section'].'. Add it under Years & Classes first.';
+                }
+
+                if ($reason !== null) {
                     $skipped[] = [
                         'line' => $row['line'],
                         'name' => $data['name'] ?? '—',
-                        'reason' => implode(' ', $validator->errors()->all()),
+                        'reason' => $reason,
                     ];
 
                     continue;
@@ -278,15 +284,20 @@ class BulkImportController extends Controller
         $columns = array_merge(self::REQUIRED, self::OPTIONAL);
         $schoolId = $this->selectableSchools()->first()?->id ?? 1;
 
+        // A class the school actually runs, or the import would refuse the row.
+        $class = SchoolClass::where('school_id', $schoolId)->ordered()->first();
+        $sampleClass = $class?->name ?? '10';
+        $sampleSection = $class?->sections[0] ?? 'A';
+
         $roll = 1 + (int) Student::where('school_id', $schoolId)
-            ->where('class', self::SAMPLE_CLASS)
-            ->where('section', self::SAMPLE_SECTION)
+            ->where('class', $sampleClass)
+            ->where('section', $sampleSection)
             ->max('roll_number');
 
         $sample = [
             'name' => 'Ramesh Thapa',
-            'class' => self::SAMPLE_CLASS,
-            'section' => self::SAMPLE_SECTION,
+            'class' => $sampleClass,
+            'section' => $sampleSection,
             'roll_number' => (string) $roll,
             'school_id' => (string) $schoolId,
             'father_name' => 'Hari Thapa',

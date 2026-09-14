@@ -29,7 +29,7 @@ class RolePermissionSeeder extends Seeder
             'marks.viewAny', 'marks.update',
             'reports.viewAny', 'reports.create', 'reports.update', 'reports.delete', 'reports.pdf',
             'results.viewAny', 'results.pdf',
-            'subjects.viewAny', 'grades.viewAny',
+            'subjects.viewAny', 'grades.viewAny', 'structure.viewAny',
         ],
         'staff' => [
             'students.viewAny',

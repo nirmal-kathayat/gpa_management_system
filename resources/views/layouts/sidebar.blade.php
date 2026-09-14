@@ -15,6 +15,8 @@
         ['label' => 'Management', 'icon' => 'fa-folder-open', 'items' => array_values(array_filter([
             $navUser->can('schools.viewAny') ? ['route' => 'schools.index', 'match' => 'schools.*', 'icon' => 'fa-school', 'label' => 'Schools'] : null,
             $navUser->can('students.viewAny') ? ['route' => 'students.index', 'match' => 'students.*', 'icon' => 'fa-user-graduate', 'label' => 'Students'] : null,
+            $navUser->can('structure.viewAny') ? ['route' => 'structure.index', 'match' => 'structure.*', 'icon' => 'fa-sitemap', 'label' => 'Years & Classes'] : null,
+            $navUser->can('promotion.run') ? ['route' => 'promotion.index', 'match' => 'promotion.*', 'icon' => 'fa-graduation-cap', 'label' => 'Promotion'] : null,
         ]))],
         ['label' => 'Academics', 'icon' => 'fa-book-open', 'items' => array_values(array_filter([
             $navUser->can('subjects.viewAny') ? ['route' => 'subjects.index', 'match' => 'subjects.*', 'icon' => 'fa-book', 'label' => 'Subjects'] : null,

@@ -10,6 +10,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GradeSystemController;
 use App\Http\Controllers\MarksEntryController;
 use App\Http\Controllers\ClassResultController;
+use App\Http\Controllers\AcademicStructureController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\BulkImportController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
@@ -99,6 +101,30 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
         ->middleware('permission:reports.pdf');
 
     $resource('schools', SchoolController::class);
+
+    // Academic years and each school's classes and sections, on one screen.
+    Route::prefix('structure')->name('structure.')->group(function () {
+        Route::get('/', [AcademicStructureController::class, 'index'])->name('index')
+            ->middleware('permission:structure.viewAny');
+        Route::post('years', [AcademicStructureController::class, 'storeYear'])->name('years.store')
+            ->middleware('permission:structure.create');
+        Route::put('years/{year}/current', [AcademicStructureController::class, 'makeCurrent'])->name('years.current')
+            ->middleware('permission:structure.update');
+        Route::delete('years/{year}', [AcademicStructureController::class, 'destroyYear'])->name('years.destroy')
+            ->middleware('permission:structure.delete');
+        Route::post('classes', [AcademicStructureController::class, 'storeClass'])->name('classes.store')
+            ->middleware('permission:structure.create');
+        Route::put('classes/{class}', [AcademicStructureController::class, 'updateClass'])->name('classes.update')
+            ->middleware('permission:structure.update');
+        Route::delete('classes/{class}', [AcademicStructureController::class, 'destroyClass'])->name('classes.destroy')
+            ->middleware('permission:structure.delete');
+    });
+
+    // Moving a class up a year, or out of the school.
+    Route::get('promotion', [PromotionController::class, 'index'])->name('promotion.index')
+        ->middleware('permission:promotion.run');
+    Route::post('promotion', [PromotionController::class, 'store'])->name('promotion.store')
+        ->middleware('permission:promotion.run');
     $resource('subjects', SubjectController::class);
     // GradeSystemController has no show(), so no /grades/{grade} route.
     Route::post('grades/load-standard', [GradeSystemController::class, 'loadStandard'])

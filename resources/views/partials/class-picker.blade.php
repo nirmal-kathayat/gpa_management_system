@@ -5,7 +5,7 @@
     inside the same .form-grid; every select marked data-picker becomes a
     Select2 when the script below runs.
 
-    Expects: $schools, $classMap, $filters, $years.
+    Expects: $schools, $classMap, $filters.
 --}}
 @if($schools->count() > 1)
     <div class="form-field is-third">
@@ -37,14 +37,15 @@
 
 <div class="form-field is-third">
     <label class="form-label" for="academic_year">Academic Year <span class="req">*</span></label>
-    <input type="text" id="academic_year" name="academic_year" required placeholder="e.g. 2081"
-           inputmode="numeric" pattern="\d{4}" maxlength="4" list="academicYears"
-           value="{{ $filters['academic_year'] ?? $years->first() }}" class="form-input">
-    <datalist id="academicYears">
-        @foreach($years as $year)
-            <option value="{{ $year }}"></option>
+    @php $pickerYears = \App\Models\AcademicYear::ordered()->get(); @endphp
+    <select id="academic_year" name="academic_year" required class="form-input" data-picker data-placeholder="Choose a year">
+        <option value=""></option>
+        @foreach($pickerYears as $pickerYear)
+            <option value="{{ $pickerYear->year }}" {{ ($filters['academic_year'] ?? \App\Models\AcademicYear::current()) === $pickerYear->year ? 'selected' : '' }}>
+                {{ $pickerYear->year }}{{ $pickerYear->is_current ? ' (current)' : '' }}
+            </option>
         @endforeach
-    </datalist>
+    </select>
 </div>
 
 @push('scripts')
@@ -63,7 +64,7 @@
                 placeholder: this.dataset.placeholder,
                 allowClear: false,
                 // Short lists do not need a search box.
-                minimumResultsForSearch: this.id === 'class' || this.id === 'section' || this.id === 'exam_type' ? Infinity : 0,
+                minimumResultsForSearch: ['class', 'section', 'exam_type', 'academic_year'].includes(this.id) ? Infinity : 0,
             }).on('select2:select', function () {
                 // Select2 hides the <select>, so the validator's input listener
                 // never sees the fix; clear its message here.

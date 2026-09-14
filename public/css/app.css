@@ -3129,6 +3129,92 @@ select + .select2-container {
     }
 }
 
+/* ---------- Years & classes ---------- */
+
+.structure-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1100px) {
+    .structure-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.structure-add {
+    margin-bottom: 18px;
+}
+
+.structure-add-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.structure-add-row .form-input {
+    max-width: 160px;
+}
+
+.structure-add-row .check-row {
+    white-space: nowrap;
+}
+
+.structure-add-class {
+    margin-bottom: 18px;
+}
+
+.section-pill {
+    margin-right: 4px;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.form-input-sm {
+    height: 34px;
+    width: auto;
+    min-width: 220px;
+    padding-right: 34px;
+    font-size: 12px;
+}
+
+.btn-ghost.is-danger {
+    color: var(--danger);
+}
+
+.btn-ghost.is-danger:hover {
+    border-color: var(--danger);
+}
+
+/* ---------- Promotion ---------- */
+
+.promotion-table .c-check {
+    width: 44px;
+}
+
+.promotion-table th.c-name,
+.promotion-table td.c-name {
+    text-align: left;
+    width: 100%;
+}
+
+.promotion-table td {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.promotion-table tr.is-failed td.c-name {
+    color: var(--danger);
+}
+
+.promotion .form-field .check-row + .check-row {
+    margin-top: 6px;
+}
+
 /* ---------- My profile ---------- */
 
 /* Here the trail sits opposite the title rather than above it, and it starts

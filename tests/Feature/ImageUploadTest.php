@@ -8,11 +8,12 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Tests\Concerns\SetsUpAcademics;
 use Tests\TestCase;
 
 class ImageUploadTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SetsUpAcademics;
 
     private User $admin;
     private School $school;
@@ -26,6 +27,7 @@ class ImageUploadTest extends TestCase
         $this->admin = User::create(['name' => 'Admin', 'username' => 'admin', 'email' => 'a@b.c', 'password' => 'secret123', 'is_active' => true]);
         $this->admin->assignRole('admin');
         $this->school = School::create(['name' => 'Test School', 'address' => 'Kathmandu']);
+        $this->setUpAcademics($this->school);
     }
 
     protected function tearDown(): void

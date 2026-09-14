@@ -18,7 +18,7 @@ class Permissions
         'update' => 'Edit',
         'delete' => 'Delete',
         'pdf' => 'Download PDF',
-        'run' => 'Run import',
+        'run' => 'Run',
     ];
 
     /**
@@ -34,6 +34,8 @@ class Permissions
         ],
         'Academic setup' => [
             'schools' => ['label' => 'Schools', 'icon' => 'fa-school', 'abilities' => ['viewAny', 'create', 'update', 'delete']],
+            'structure' => ['label' => 'Years & Classes', 'icon' => 'fa-sitemap', 'abilities' => ['viewAny', 'create', 'update', 'delete']],
+            'promotion' => ['label' => 'Promotion', 'icon' => 'fa-graduation-cap', 'abilities' => ['run']],
             'subjects' => ['label' => 'Subjects', 'icon' => 'fa-book', 'abilities' => ['viewAny', 'create', 'update', 'delete']],
             'grades' => ['label' => 'Grade Scale', 'icon' => 'fa-award', 'abilities' => ['viewAny', 'create', 'update', 'delete']],
             'bulk-import' => ['label' => 'Bulk Import', 'icon' => 'fa-upload', 'abilities' => ['run']],

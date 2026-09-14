@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Support\TableResponse;
 use Illuminate\Http\Request;
@@ -113,12 +114,28 @@ class StudentController extends Controller
         return view('students.create', compact('schools'));
     }
 
+    /**
+     * The class and section have to be ones the school runs. Checked as one
+     * rule on the section, since a section only means something in its class.
+     */
+    private function runsClass(Request $request): \Closure
+    {
+        return function ($attribute, $value, $fail) use ($request) {
+            $schoolId = (int) $request->input('school_id');
+            $class = (string) $request->input('class');
+
+            if ($schoolId && $class !== '' && ! SchoolClass::runs($schoolId, $class, (string) $value)) {
+                $fail('That school does not run class '.$class.' '.$value.'. Add it under Years & Classes first.');
+            }
+        };
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'class' => 'required|string|max:50',
-            'section' => 'required|string|max:10',
+            'section' => ['required', 'string', 'max:10', $this->runsClass($request)],
             'roll_number' => 'required|integer',
             'symbol_number' => 'nullable|string|max:50',
             'gender' => 'nullable|in:Male,Female,Other',
@@ -169,7 +186,7 @@ class StudentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'class' => 'required|string|max:50',
-            'section' => 'required|string|max:10',
+            'section' => ['required', 'string', 'max:10', $this->runsClass($request)],
             'roll_number' => 'required|integer',
             'symbol_number' => 'nullable|string|max:50',
             'gender' => 'nullable|in:Male,Female,Other',

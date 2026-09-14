@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Concerns;
 
-use App\Models\Student;
+use App\Models\AcademicYear;
+use App\Models\SchoolClass;
 use Illuminate\Http\Request;
 
 /**
@@ -29,30 +30,19 @@ trait PicksClass
             'school_id' => $schoolId,
             'class' => trim((string) $request->input('class')) ?: null,
             'section' => trim((string) $request->input('section')) ?: null,
+            // No year on the query string means the year in progress.
             'academic_year' => preg_match('/^\d{4}$/', (string) $request->input('academic_year'))
-                ? $request->input('academic_year') : null,
+                ? $request->input('academic_year')
+                : ($request->has('academic_year') ? null : AcademicYear::current()),
         ];
     }
 
     /**
-     * Every class and section that has students, per school, for the cascading
-     * pickers. Small enough to ship whole: a few hundred entries at the most.
+     * Every class and section each school runs, from the Years & Classes
+     * screen, for the cascading pickers.
      */
     protected function classMap(array $schoolIds): array
     {
-        $map = [];
-
-        $rows = Student::whereIn('school_id', $schoolIds)
-            ->select('school_id', 'class', 'section')
-            ->distinct()
-            ->orderBy('class')
-            ->orderBy('section')
-            ->get();
-
-        foreach ($rows as $row) {
-            $map[$row->school_id][$row->class][] = $row->section;
-        }
-
-        return $map;
+        return SchoolClass::mapFor($schoolIds);
     }
 }

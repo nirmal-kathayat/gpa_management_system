@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\PicksClass;
+use App\Models\AcademicYear;
 use App\Models\Student;
 use App\Models\StudentReport;
 use App\Models\StudentMark;
@@ -128,7 +129,13 @@ class ReportController extends Controller
                     ->where(fn ($q) => $q->where('academic_year', $request->input('academic_year')))
                     ->ignore($report?->id),
             ],
-            'academic_year' => ['required', 'regex:/^\d{4}$/'],
+            // One of the years on the Years & Classes screen - or, when editing,
+            // the year the card already carries.
+            'academic_year' => ['required', 'regex:/^\d{4}$/', function ($attribute, $value, $fail) use ($report) {
+                if ($value !== $report?->academic_year && ! AcademicYear::where('year', $value)->exists()) {
+                    $fail('That academic year is not in the list. Add it under Years & Classes first.');
+                }
+            }],
             // Written on the card, since the student's own record moves on.
             'class' => 'required|string|max:50',
             'section' => 'required|string|max:10',

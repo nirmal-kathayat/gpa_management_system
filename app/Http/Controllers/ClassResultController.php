@@ -27,7 +27,6 @@ class ClassResultController extends Controller
             'schools' => $schools,
             'classMap' => $this->classMap($schools->pluck('id')->all()),
             'exams' => MarksEntryController::EXAMS,
-            'years' => StudentReport::distinct()->orderByDesc('academic_year')->pluck('academic_year'),
             'filters' => $filters,
             'sheet' => $filters['complete'] ? $this->sheet($filters) : null,
             'school' => $filters['school_id'] ? School::find($filters['school_id']) : null,

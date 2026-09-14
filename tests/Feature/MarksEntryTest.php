@@ -12,6 +12,7 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Tests\Concerns\SetsUpAcademics;
 use Tests\TestCase;
 
 /**
@@ -20,7 +21,7 @@ use Tests\TestCase;
  */
 class MarksEntryTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SetsUpAcademics;
 
     private User $admin;
     private School $school;
@@ -46,6 +47,7 @@ class MarksEntryTest extends TestCase
         $this->admin->assignRole('admin');
 
         $this->school = School::create(['name' => 'Test School', 'address' => 'Kathmandu']);
+        $this->setUpAcademics($this->school);
         $this->maths = Subject::create(['name' => 'Maths', 'code' => 'MAT', 'full_marks' => 100, 'pass_marks' => 35, 'is_active' => true]);
 
         $this->ram = Student::create(['name' => 'Ram', 'class' => '10', 'section' => 'A', 'roll_number' => 1, 'school_id' => $this->school->id, 'is_active' => true]);

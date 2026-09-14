@@ -27,6 +27,11 @@ class School extends Model
         return $this->hasMany(Student::class);
     }
 
+    public function classes()
+    {
+        return $this->hasMany(SchoolClass::class)->ordered();
+    }
+
     public function reports()
     {
         return $this->hasManyThrough(StudentReport::class, Student::class);

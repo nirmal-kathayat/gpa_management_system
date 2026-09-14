@@ -113,7 +113,7 @@
                 <div class="detail-label">Required columns</div>
                 <ul class="import-columns">
                     <li><code>name</code> Student full name</li>
-                    <li><code>class</code> Class name, e.g. 10</li>
+                    <li><code>class</code> Class name, e.g. 10 — one the school runs (see <a href="{{ route('structure.index') }}">Years &amp; Classes</a>)</li>
                     <li><code>section</code> Section, e.g. A</li>
                     <li><code>roll_number</code> Roll number, a whole number</li>
                     <li><code>school_id</code> School id from the table below</li>

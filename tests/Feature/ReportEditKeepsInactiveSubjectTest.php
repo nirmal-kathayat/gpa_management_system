@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\ReportGrader;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\SetsUpAcademics;
 use Tests\TestCase;
 
 /**
@@ -19,7 +20,7 @@ use Tests\TestCase;
  */
 class ReportEditKeepsInactiveSubjectTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SetsUpAcademics;
 
     public function test_editing_a_report_keeps_marks_for_a_subject_deactivated_since(): void
     {
@@ -29,6 +30,7 @@ class ReportEditKeepsInactiveSubjectTest extends TestCase
         $admin->assignRole('admin');
 
         $school = School::create(['name' => 'Test School', 'address' => 'Kathmandu']);
+        $this->setUpAcademics($school);
         $student = Student::create(['name' => 'Hari', 'class' => '9', 'section' => 'A', 'roll_number' => 1, 'school_id' => $school->id, 'is_active' => true]);
         $maths = Subject::create(['name' => 'Maths', 'code' => 'MAT', 'full_marks' => 100, 'pass_marks' => 35, 'is_active' => true]);
         $moral = Subject::create(['name' => 'Moral Education', 'code' => 'MOR', 'full_marks' => 50, 'pass_marks' => 18, 'is_active' => true]);

@@ -14,6 +14,8 @@
         'reports.*' => 'Report Cards',
         'results.*' => 'Class Results',
         'schools.*' => 'Schools',
+        'structure.*' => 'Years & Classes',
+        'promotion.*' => 'Promotion',
         'users.profile' => 'My Profile',
         'users.*' => 'Users',
         'roles.*' => 'Roles',

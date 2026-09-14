@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\ReportGrader;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\SetsUpAcademics;
 use Tests\TestCase;
 
 /**
@@ -19,7 +20,7 @@ use Tests\TestCase;
  */
 class ReportClassSnapshotTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SetsUpAcademics;
 
     private School $school;
     private Subject $subject;
@@ -33,6 +34,7 @@ class ReportClassSnapshotTest extends TestCase
         GradeSystem::create(['letter_grade' => 'NG', 'grade_point' => 0, 'marks_from' => 0, 'marks_to' => 49, 'description' => 'NG', 'is_failing' => true, 'is_active' => true]);
 
         $this->school = School::create(['name' => 'Test School', 'address' => 'Kathmandu']);
+        $this->setUpAcademics($this->school);
         $this->subject = Subject::create(['name' => 'Maths', 'code' => 'MAT', 'full_marks' => 100, 'pass_marks' => 35, 'is_active' => true]);
     }
 

@@ -39,17 +39,26 @@
             @error('symbol_number')<p class="form-error">{{ $message }}</p>@enderror
         </div>
 
+        {{-- Only the classes and sections the chosen school runs (Years & Classes). --}}
         <div class="form-field is-third">
             <label class="form-label" for="class">Class <span class="req">*</span></label>
-            <input type="text" id="class" name="class" value="{{ old('class', $student?->class) }}" required
-                   placeholder="e.g. 10" class="form-input @error('class') is-invalid @enderror">
-            @error('class')<p class="form-error">{{ $message }}</p>@enderror
+            <select id="class" name="class" required data-current="{{ old('class', $student?->class) }}"
+                    class="form-input @error('class') is-invalid @enderror">
+                <option value="">Select class</option>
+            </select>
+            @error('class')
+                <p class="form-error">{{ $message }}</p>
+            @else
+                <p class="form-hint">Missing a class? Add it under <a href="{{ route('structure.index') }}">Years &amp; Classes</a>.</p>
+            @enderror
         </div>
 
         <div class="form-field is-third">
             <label class="form-label" for="section">Section <span class="req">*</span></label>
-            <input type="text" id="section" name="section" value="{{ old('section', $student?->section) }}" required
-                   placeholder="e.g. A" class="form-input @error('section') is-invalid @enderror">
+            <select id="section" name="section" required data-current="{{ old('section', $student?->section) }}"
+                    class="form-input @error('section') is-invalid @enderror">
+                <option value="">Select section</option>
+            </select>
             @error('section')<p class="form-error">{{ $message }}</p>@enderror
         </div>
 
@@ -186,3 +195,52 @@
     <a href="{{ route('students.index') }}" class="btn-ghost">Cancel</a>
     <button type="submit" class="btn-primary-flat">{{ $submitLabel }}</button>
 </div>
+
+@push('scripts')
+<script>
+    (function () {
+        // Class and section follow the chosen school, from the Years & Classes
+        // screen. A student in a class that has since gone is still shown in it.
+        const classMap = @json(\App\Models\SchoolClass::mapFor($schools->pluck('id')->all()));
+        const schoolEl = document.getElementById('school_id');
+        const classEl = document.getElementById('class');
+        const sectionEl = document.getElementById('section');
+
+        function fill(select, values, current, blank) {
+            select.innerHTML = '<option value="">' + blank + '</option>';
+
+            if (current && !values.includes(current)) values = values.concat([current]);
+
+            values.forEach(function (value) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                option.selected = value === current;
+                select.appendChild(option);
+            });
+        }
+
+        function classes() {
+            const school = classMap[schoolEl.value] || {};
+            fill(classEl, Object.keys(school), classEl.dataset.current, 'Select class');
+            sections();
+        }
+
+        function sections() {
+            const school = classMap[schoolEl.value] || {};
+            fill(sectionEl, school[classEl.value] || [], sectionEl.dataset.current, 'Select section');
+        }
+
+        schoolEl.addEventListener('change', function () {
+            classEl.dataset.current = '';
+            sectionEl.dataset.current = '';
+            classes();
+        });
+        classEl.addEventListener('change', function () {
+            sectionEl.dataset.current = '';
+            sections();
+        });
+        classes();
+    })();
+</script>
+@endpush

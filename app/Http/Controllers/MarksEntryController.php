@@ -50,7 +50,6 @@ class MarksEntryController extends Controller
             'classMap' => $this->classMap($schools->pluck('id')->all()),
             'subjects' => Subject::where('is_active', true)->orderBy('name')->get(),
             'exams' => self::EXAMS,
-            'years' => StudentReport::distinct()->orderByDesc('academic_year')->pluck('academic_year'),
             'filters' => $filters,
             'ledger' => null,
         ];
@@ -196,11 +195,12 @@ class MarksEntryController extends Controller
             'school_id' => ['required', 'integer', 'exists:schools,id'],
             'class' => ['required', 'string', 'max:50'],
             'section' => ['required', 'string', 'max:10'],
-            'academic_year' => ['required', 'regex:/^\d{4}$/'],
+            'academic_year' => ['required', 'regex:/^\d{4}$/', 'exists:academic_years,year'],
             'subject_id' => ['required', 'exists:subjects,id'],
             'exam_type' => ['required', Rule::in(array_keys(self::EXAMS))],
         ], [
             'academic_year.regex' => 'Enter the academic year as four digits, e.g. 2081.',
+            'academic_year.exists' => 'That academic year is not in the list. Add it under Years & Classes first.',
         ]);
 
         $this->authorizeSchool((int) $filters['school_id']);

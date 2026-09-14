@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\AcademicYear;
 use App\Models\GradeSystem;
+use App\Models\SchoolClass;
 use App\Models\School;
 use App\Models\Student;
 use App\Models\StudentMark;
@@ -91,6 +93,26 @@ class DemoDataSeeder extends Seeder
             School::query()->delete();
 
             $schools = collect(self::SCHOOLS)->map(fn ($school) => School::create($school));
+
+            // The years the demo covers, the last one current; and the classes
+            // each demo school runs, from the students it is about to get.
+            foreach (self::YEARS as $year) {
+                AcademicYear::firstOrCreate(['year' => $year])->update(['is_current' => $year === end(self::YEARS)]);
+            }
+            AcademicYear::whereNotIn('year', self::YEARS)->update(['is_current' => false]);
+
+            $sections = collect(self::STUDENTS)->groupBy(2)->map(fn ($rows) => $rows->pluck(3)->unique()->values()->all());
+
+            foreach ($schools as $school) {
+                foreach ($sections as $class => $classSections) {
+                    SchoolClass::create([
+                        'school_id' => $school->id,
+                        'name' => (string) $class,
+                        'sections' => $classSections,
+                        'sort_order' => is_numeric($class) ? (int) $class : 100,
+                    ]);
+                }
+            }
 
             $subjects = collect(self::SUBJECTS)->map(fn ($subject) => Subject::create([
                 'name' => $subject[0],

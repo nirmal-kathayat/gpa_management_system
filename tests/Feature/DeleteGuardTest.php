@@ -12,6 +12,7 @@ use App\Support\ReportGrader;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Tests\Concerns\SetsUpAcademics;
 use Tests\TestCase;
 
 /**
@@ -19,7 +20,7 @@ use Tests\TestCase;
  */
 class DeleteGuardTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, SetsUpAcademics;
 
     private User $admin;
     private School $school;
@@ -37,6 +38,7 @@ class DeleteGuardTest extends TestCase
         $this->admin->assignRole('admin');
 
         $this->school = School::create(['name' => 'Test School', 'address' => 'Kathmandu']);
+        $this->setUpAcademics($this->school);
         $this->subject = Subject::create(['name' => 'Maths', 'code' => 'MAT', 'full_marks' => 100, 'pass_marks' => 35, 'is_active' => true]);
         $this->student = Student::create(['name' => 'Hari', 'class' => '9', 'section' => 'A', 'roll_number' => 1, 'school_id' => $this->school->id, 'is_active' => true]);
     }

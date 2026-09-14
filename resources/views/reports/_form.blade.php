@@ -57,19 +57,27 @@
 
         <div class="form-field">
             <label class="form-label" for="academic_year">Academic Year <span class="req">*</span></label>
-            <input type="text" id="academic_year" name="academic_year" required placeholder="e.g. 2081"
-                   inputmode="numeric" pattern="\d{4}" maxlength="4" list="academicYears"
-                   value="{{ old('academic_year', $report?->academic_year) }}"
-                   class="form-input @error('academic_year') is-invalid @enderror">
-            <datalist id="academicYears">
-                @foreach(\App\Models\StudentReport::distinct()->orderByDesc('academic_year')->pluck('academic_year') as $year)
-                    <option value="{{ $year }}"></option>
+            @php
+                $formYears = \App\Models\AcademicYear::ordered()->get();
+                $chosenYear = old('academic_year', $report?->academic_year ?? \App\Models\AcademicYear::current());
+            @endphp
+            <select id="academic_year" name="academic_year" required
+                    class="form-input @error('academic_year') is-invalid @enderror">
+                <option value="">Select year</option>
+                @foreach($formYears as $formYear)
+                    <option value="{{ $formYear->year }}" {{ $chosenYear === $formYear->year ? 'selected' : '' }}>
+                        {{ $formYear->year }}{{ $formYear->is_current ? ' (current)' : '' }}
+                    </option>
                 @endforeach
-            </datalist>
+                {{-- A card issued under a year since removed from the list still shows it. --}}
+                @if($chosenYear && ! $formYears->contains('year', $chosenYear))
+                    <option value="{{ $chosenYear }}" selected>{{ $chosenYear }}</option>
+                @endif
+            </select>
             @error('academic_year')
                 <p class="form-error">{{ $message }}</p>
             @else
-                <p class="form-hint">Four digits, e.g. 2081.</p>
+                <p class="form-hint">Years are managed under <a href="{{ route('structure.index') }}">Years &amp; Classes</a>.</p>
             @enderror
         </div>
 
