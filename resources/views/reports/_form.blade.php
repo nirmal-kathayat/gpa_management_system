@@ -136,6 +136,10 @@
                         <td class="marks-subject">
                             {{ $subject->name }}
                             <span class="marks-full">/ {{ $subject->full_marks }}</span>
+                            @unless($subject->is_active)
+                                {{-- Kept on the card because it already has marks. --}}
+                                <span class="marks-inactive" title="This subject is no longer active, but this report card already has marks for it.">Inactive</span>
+                            @endunless
                             <input type="hidden" name="marks[{{ $index }}][subject_id]" value="{{ $subject->id }}">
                         </td>
                         @foreach($terms as $key => $term)

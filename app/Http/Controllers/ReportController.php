@@ -266,7 +266,14 @@ class ReportController extends Controller
     {
         $this->authorizeReport($report);
 
-        $subjects = Subject::where('is_active', true)->orderBy('name')->get();
+        // The subjects on the form are the active ones plus any this card
+        // already has marks for. Saving replaces every mark with what the form
+        // sends, so a subject left off the form is a subject whose marks vanish
+        // - which is what deactivating one used to do to every old card.
+        $subjects = Subject::where('is_active', true)
+            ->orWhereIn('id', $report->marks()->select('subject_id'))
+            ->orderBy('name')
+            ->get();
 
         $marks = $report->marks;
 

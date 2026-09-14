@@ -1699,6 +1699,21 @@ input[type="file"].form-input::file-selector-button:hover {
     color: var(--muted);
 }
 
+/* A subject that has been deactivated but still has marks on this card. */
+.marks-inactive {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--warning-bg);
+    color: var(--warning);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    vertical-align: 1px;
+}
+
 .marks-input {
     width: 84px;
     height: 34px;
