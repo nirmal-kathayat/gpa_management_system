@@ -54,12 +54,20 @@ class GradeCalculator
         return $this->forPercentage($obtained / $fullMarks * 100);
     }
 
+    /**
+     * Bands are whole percentages (70-79, 80-89), but a mark of 39.75 out of 50
+     * is 79.5%. A band therefore runs from its lower bound up to, but not
+     * including, the number after its upper bound, so 79.5 is a 70-79 like any
+     * other mark that has not reached 80. Comparing against marks_to itself
+     * used to leave every fraction between two bands ungraded, and an ungraded
+     * subject is a failed one.
+     */
     public function forPercentage(float $percentage): ?GradeSystem
     {
         $percentage = max(0, min(100, $percentage));
 
         return $this->scale()->first(
-            fn (GradeSystem $band) => $percentage >= $band->marks_from && $percentage <= $band->marks_to
+            fn (GradeSystem $band) => $percentage >= $band->marks_from && $percentage < $band->marks_to + 1
         );
     }
 
