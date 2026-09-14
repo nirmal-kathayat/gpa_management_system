@@ -71,6 +71,10 @@ Route::middleware(['auth', 'active'])->group(function () use ($resource) {
     Route::get('marks', [MarksEntryController::class, 'index'])
         ->name('marks.index')
         ->middleware('permission:marks.viewAny');
+    // The ledger's rows, paged and searched by the grid.
+    Route::get('marks/rows', [MarksEntryController::class, 'rows'])
+        ->name('marks.rows')
+        ->middleware('permission:marks.viewAny');
     Route::post('marks', [MarksEntryController::class, 'store'])
         ->name('marks.store')
         ->middleware('permission:marks.update');

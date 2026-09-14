@@ -90,20 +90,23 @@
 </form>
 
 @if($filters['complete'] && $ledger)
-    @php
-        $subject = $ledger['subject'];
-        $students = $ledger['students'];
-        $marks = $ledger['marks'];
-    @endphp
+    @php $subject = $ledger['subject']; @endphp
 
-    <form class="form-card is-roomy ledger" action="{{ route('marks.store') }}" method="POST" data-validate
-          data-full-marks="{{ $subject->full_marks }}"
-          data-pass-marks="{{ $subject->pass_marks }}"
-          data-bands='@json($ledger['bands'])'>
-        @csrf
-        @foreach(['school_id', 'class', 'section', 'academic_year', 'subject_id', 'exam_type'] as $key)
-            <input type="hidden" name="{{ $key }}" value="{{ $filters[$key] }}">
-        @endforeach
+    {{--
+        The ledger is a TableHelper grid so a large class pages, searches and
+        sorts like every other list. Each row's two boxes are inputs; what is
+        typed is kept in a map keyed by student id, so it survives paging and
+        is posted in one go from the Save button.
+    --}}
+    <div class="form-card is-roomy ledger" id="ledger"
+         data-rows-url="{{ route('marks.rows', Arr::except($filters, 'complete')) }}"
+         data-save-url="{{ route('marks.store') }}"
+         data-filters='@json(Arr::except($filters, 'complete'))'
+         data-full-marks="{{ $subject->full_marks }}"
+         data-pass-marks="{{ $subject->pass_marks }}"
+         data-students="{{ $ledger['students'] }}"
+         data-entered="{{ $ledger['entered'] }}"
+         data-bands='@json($ledger['bands'])'>
 
         <div class="form-card-head ledger-head">
             <div>
@@ -114,100 +117,33 @@
                 </h2>
                 <p class="form-card-sub">
                     Academic year {{ $filters['academic_year'] }}
-                    &nbsp;·&nbsp; {{ $students->count() }} {{ Str::plural('student', $students->count()) }}
+                    &nbsp;·&nbsp; {{ $ledger['students'] }} {{ Str::plural('student', $ledger['students']) }}
                     &nbsp;·&nbsp; Full marks {{ $subject->full_marks }}, pass marks {{ $subject->pass_marks }}
                 </p>
             </div>
             <span class="ledger-progress" data-progress>
-                {{ $marks->count() }} / {{ $students->count() }} entered
+                {{ $ledger['entered'] }} / {{ $ledger['students'] }} entered
             </span>
         </div>
 
         <div class="form-card-body">
-            @if($students->isEmpty())
-                <div class="empty-state">
-                    <i class="fas fa-user-graduate"></i>
-                    <p>No students in class {{ $filters['class'] }} {{ $filters['section'] }} at this school.</p>
-                </div>
-            @else
-                <div class="marks-table-wrap">
-                    <table class="marks-table ledger-table">
-                        <thead>
-                            <tr>
-                                <th>Roll</th>
-                                <th>Student</th>
-                                <th>Theory</th>
-                                <th>Practical</th>
-                                <th>Total</th>
-                                <th>Grade</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($students as $student)
-                                @php
-                                    $mark = $marks->get($student->id);
-                                    $inClass = $student->class === $filters['class'] && $student->section === $filters['section'] && $student->is_active;
-                                @endphp
-                                <tr data-student="{{ $student->id }}">
-                                    <td class="ledger-roll">{{ $student->roll_number }}</td>
-                                    <td class="marks-subject">
-                                        {{ $student->name }}
-                                        @unless($inClass)
-                                            {{-- Holds a card for this class and year but is not in it now. --}}
-                                            <span class="marks-inactive" title="Now in class {{ $student->class }} {{ $student->section }}{{ $student->is_active ? '' : ', no longer enrolled' }}. Listed because they have a report card for this class and year.">Moved</span>
-                                        @endunless
-                                    </td>
-                                    <td>
-                                        <input type="number" min="0" max="{{ $subject->full_marks }}" step="0.01" inputmode="decimal"
-                                               name="marks[{{ $student->id }}][th]" data-part="th"
-                                               value="{{ old('marks.'.$student->id.'.th', $mark?->theory_marks !== null ? $mark->theory_marks + 0 : '') }}"
-                                               class="form-input marks-input @error('marks.'.$student->id.'.th') is-invalid @enderror">
-                                    </td>
-                                    <td>
-                                        <input type="number" min="0" max="{{ $subject->full_marks }}" step="0.01" inputmode="decimal"
-                                               name="marks[{{ $student->id }}][pr]" data-part="pr"
-                                               value="{{ old('marks.'.$student->id.'.pr', $mark?->practical_marks !== null ? $mark->practical_marks + 0 : '') }}"
-                                               class="form-input marks-input @error('marks.'.$student->id.'.pr') is-invalid @enderror">
-                                    </td>
-                                    <td class="ledger-total" data-total>{{ $mark ? $mark->total_marks + 0 : '—' }}</td>
-                                    <td class="ledger-grade" data-grade>
-                                        @if($mark)
-                                            <span class="grade-pill {{ $mark->grade_point > 0 ? '' : 'is-fail' }}">{{ $mark->letter_grade }}</span>
-                                        @else
-                                            —
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- A cell cannot hold its own message, so mark errors are listed here. --}}
-                @php
-                    $markErrors = collect($errors->getMessages())
-                        ->filter(fn ($messages, $key) => str_starts_with($key, 'marks'))
-                        ->flatten()->unique();
-                @endphp
-                @foreach($markErrors as $message)
-                    <p class="form-error">{{ $message }}</p>
-                @endforeach
-            @endif
+            <div id="ledger-grid" class="cq-grid ledger-grid"></div>
         </div>
 
-        @if($students->isNotEmpty())
-            <div class="form-card-foot ledger-foot">
-                <p class="form-hint">
-                    <kbd>Enter</kbd> moves down the column. Leave both boxes empty to record no mark.
-                </p>
-                @can('marks.update')
-                    <button type="submit" class="btn-primary-flat"><i class="fas fa-floppy-disk"></i>Save Marks</button>
-                @else
-                    <span class="form-hint">You can view this ledger but not change it.</span>
-                @endcan
-            </div>
-        @endif
-    </form>
+        <div class="form-card-foot ledger-foot">
+            <p class="form-hint">
+                <kbd>Enter</kbd> moves down the column. Leave both boxes empty to record no mark.
+                <span class="ledger-unsaved" data-unsaved hidden></span>
+            </p>
+            @can('marks.update')
+                <button type="button" class="btn-primary-flat" data-save disabled>
+                    <i class="fas fa-floppy-disk"></i>Save Marks
+                </button>
+            @else
+                <span class="form-hint">You can view this ledger but not change it.</span>
+            @endcan
+        </div>
+    </div>
 @elseif($filters['complete'])
     <div class="form-card is-roomy">
         <div class="form-card-body">
@@ -285,14 +221,28 @@
         });
         classes();
 
-        // ---- The ledger: live totals and grades, Enter moves down. ---------
-        const ledger = document.querySelector('form.ledger');
+        // ---- The ledger grid ------------------------------------------------
+        const ledger = document.getElementById('ledger');
         if (!ledger) return;
 
+        const canSave = !!ledger.querySelector('[data-save]');
         const fullMarks = parseFloat(ledger.dataset.fullMarks);
         const passMarks = parseFloat(ledger.dataset.passMarks);
         const bands = JSON.parse(ledger.dataset.bands);
-        const rows = Array.from(ledger.querySelectorAll('tbody tr'));
+        const filters = JSON.parse(ledger.dataset.filters);
+        const studentCount = parseInt(ledger.dataset.students, 10);
+        let enteredOnServer = parseInt(ledger.dataset.entered, 10);
+
+        // What has been typed and not yet saved, by student id. The grid
+        // re-renders its rows on every page or search, so this is the truth
+        // and the inputs are drawn from it.
+        const edits = {};
+        // What the server has, by student id, for rows seen so far - so the
+        // progress count can be kept right as boxes are filled or emptied.
+        const saved = {};
+
+        const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         // The same rule as GradeCalculator: a band covers its whole numbers
         // and the fractions above them, up to the next band.
@@ -303,82 +253,243 @@
             return { letter: band.letter, fail: band.failing || (!isNaN(passMarks) && total < passMarks) };
         }
 
-        function value(input) {
-            return input.value.trim() === '' ? null : parseFloat(input.value);
+        function valueOf(row, part) {
+            const edit = edits[row.id];
+            if (edit) return edit[part];
+            return row[part];
         }
 
-        function update(row) {
-            const th = row.querySelector('[data-part="th"]');
-            const pr = row.querySelector('[data-part="pr"]');
-            const totalEl = row.querySelector('[data-total]');
-            const gradeEl = row.querySelector('[data-grade]');
-            const a = value(th), b = value(pr);
+        function num(v) {
+            return v === null || v === undefined || v === '' ? null : parseFloat(v);
+        }
 
-            if (a === null && b === null) {
-                totalEl.textContent = '—';
-                gradeEl.textContent = '—';
-                th.classList.remove('is-invalid');
-                pr.classList.remove('is-invalid');
-                return false;
-            }
-
+        // Total and grade for a row from whatever it currently holds.
+        function result(row) {
+            const a = num(valueOf(row, 'th')), b = num(valueOf(row, 'pr'));
+            if (a === null && b === null) return null;
             const total = (a || 0) + (b || 0);
             const over = total > fullMarks || (a !== null && a < 0) || (b !== null && b < 0);
-            th.classList.toggle('is-invalid', over);
-            pr.classList.toggle('is-invalid', over);
+            return { total, over, grade: over ? null : gradeFor(total) };
+        }
 
-            totalEl.textContent = parseFloat(total.toFixed(2));
+        function pill(r) {
+            if (!r) return '—';
+            if (r.over) return '<span class="grade-pill is-fail">&gt; ' + fullMarks + '</span>';
+            return '<span class="grade-pill' + (r.grade.fail ? ' is-fail' : '') + '">' + esc(r.grade.letter) + '</span>';
+        }
 
-            if (over) {
-                gradeEl.innerHTML = '<span class="grade-pill is-fail">&gt; ' + fullMarks + '</span>';
-                return true;
+        function box(row, part) {
+            const v = valueOf(row, part);
+            const r = result(row);
+            return '<input type="number" min="0" max="' + fullMarks + '" step="0.01" inputmode="decimal"'
+                + ' class="form-input marks-input' + (r && r.over ? ' is-invalid' : '') + '"'
+                + ' data-student="' + row.id + '" data-part="' + part + '"'
+                + ' value="' + esc(v === null || v === undefined ? '' : v) + '"'
+                + (canSave ? '' : ' disabled') + '>';
+        }
+
+        const grid = new TableHelper({
+            containerId: 'ledger-grid',
+            apiUrl: ledger.dataset.rowsUrl,
+            perPage: 10,
+            perPageOptions: [10, 25, 50, 100],
+            pagination: true,
+            enableCheckbox: false,
+            stickyHeader: false,
+            autoInitDatePickers: false,
+            emptyMessage: 'No students in class ' + esc(filters.class) + ' ' + esc(filters.section) + ' at this school.',
+            search: { placeholder: 'Find a student by name or roll…' },
+            enableSortColumns: ['roll_number', 'name'],
+
+            columns: [
+                { name: 'Roll', field: 'roll_number', width: '70px', align: 'center', render: (r) => esc(r.roll_number) },
+                {
+                    name: 'Student', field: 'name',
+                    render: (r) => esc(r.name) + (r.moved
+                        ? ' <span class="marks-inactive" title="Now in class ' + esc(r.now) + '. Listed because they have a report card for this class and year.">Moved</span>'
+                        : '')
+                },
+                { name: 'Theory', field: 'th', width: '120px', align: 'center', render: (r) => box(r, 'th') },
+                { name: 'Practical', field: 'pr', width: '120px', align: 'center', render: (r) => box(r, 'pr') },
+                {
+                    name: 'Total', field: 'total', width: '90px', align: 'center', class: 'ledger-total',
+                    render: (r) => { const x = result(r); return x ? parseFloat(x.total.toFixed(2)) : '—'; }
+                },
+                {
+                    name: 'Grade', field: 'grade', width: '90px', align: 'center', class: 'ledger-grade',
+                    render: (r) => pill(result(r))
+                }
+            ],
+
+            filters: {
+                autoGenerateColumnFilters: false,
+                columnFilters: [
+                    { field: 'roll_number', type: 'text', param: 'roll_number', placeholder: 'Roll' },
+                    { field: 'name', type: 'text', param: 'name', placeholder: 'Name' },
+                    {
+                        field: 'grade', type: 'select', param: 'entered', allowBlank: true,
+                        options: [{ value: '0', label: 'Missing' }, { value: '1', label: 'Entered' }]
+                    }
+                ]
+            },
+
+            onDataLoaded: (rows) => {
+                rows.forEach(r => { saved[r.id] = r.th !== null || r.pr !== null; });
+                // Rendering happens right after this hook; the focus request
+                // left by Enter on the last row is honoured once it has.
+                setTimeout(focusPending, 0);
             }
+        });
 
-            const grade = gradeFor(total);
-            gradeEl.innerHTML = '<span class="grade-pill' + (grade.fail ? ' is-fail' : '') + '">' + grade.letter + '</span>';
-            return true;
+        // ---- Typing ---------------------------------------------------------
+        const container = document.getElementById('ledger-grid');
+
+        function rowOf(input) {
+            return grid.gridData.find(r => String(r.id) === input.dataset.student);
+        }
+
+        function redraw(input) {
+            const row = rowOf(input);
+            const tr = input.closest('tr');
+            if (!row || !tr) return;
+            const r = result(row);
+            tr.querySelector('.ledger-total').innerHTML = r ? parseFloat(r.total.toFixed(2)) : '—';
+            tr.querySelector('.ledger-grade').innerHTML = pill(r);
+            tr.querySelectorAll('.marks-input').forEach(i => i.classList.toggle('is-invalid', !!(r && r.over)));
         }
 
         function progress() {
-            const entered = rows.filter(row => {
-                const a = value(row.querySelector('[data-part="th"]'));
-                const b = value(row.querySelector('[data-part="pr"]'));
-                return a !== null || b !== null;
-            }).length;
-            ledger.querySelector('[data-progress]').textContent = entered + ' / ' + rows.length + ' entered';
+            // Rows with an unsaved edit count by the edit; the rest by the server.
+            let entered = enteredOnServer;
+            Object.keys(edits).forEach(id => {
+                const has = num(edits[id].th) !== null || num(edits[id].pr) !== null;
+                if (has && !saved[id]) entered++;
+                if (!has && saved[id]) entered--;
+            });
+            ledger.querySelector('[data-progress]').textContent = entered + ' / ' + studentCount + ' entered';
+
+            const pending = Object.keys(edits).length;
+            const note = ledger.querySelector('[data-unsaved]');
+            note.hidden = pending === 0;
+            note.textContent = pending === 1 ? '1 unsaved change.' : pending + ' unsaved changes.';
+
+            const save = ledger.querySelector('[data-save]');
+            if (save) save.disabled = pending === 0;
         }
 
-        rows.forEach(row => {
-            row.querySelectorAll('.marks-input').forEach(input => {
-                input.addEventListener('input', () => { update(row); progress(); });
+        container.addEventListener('input', (event) => {
+            const input = event.target;
+            if (!input.matches('.marks-input')) return;
 
-                // Enter goes to the same box on the next row, the way a
-                // ledger is filled; the form is submitted from its button.
-                input.addEventListener('keydown', event => {
-                    if (event.key !== 'Enter') return;
-                    event.preventDefault();
-                    const index = rows.indexOf(row);
-                    const next = rows[index + (event.shiftKey ? -1 : 1)];
-                    if (next) {
-                        const target = next.querySelector('[data-part="' + input.dataset.part + '"]');
-                        target.focus();
-                        target.select();
-                    }
-                });
-            });
-            update(row);
+            const row = rowOf(input);
+            if (!row) return;
+
+            const edit = edits[row.id] || (edits[row.id] = { th: row.th, pr: row.pr });
+            edit[input.dataset.part] = input.value.trim() === '' ? null : input.value;
+
+            // Typed back to what the server has - nothing to save for this row.
+            if (num(edit.th) === num(row.th) && num(edit.pr) === num(row.pr)) {
+                delete edits[row.id];
+            }
+
+            redraw(input);
+            progress();
         });
-        progress();
 
-        // Nothing over the limit leaves the page.
-        ledger.addEventListener('submit', event => {
-            const bad = rows.map(update).length && ledger.querySelector('.marks-input.is-invalid');
-            if (bad) {
-                event.preventDefault();
-                bad.focus();
-                if (window.toast) window.toast.error('A mark is over the subject\'s full marks.');
+        // Enter goes to the same box on the next row, the way a ledger is
+        // filled; on the last row of a page it turns the page.
+        let pendingFocus = null;
+
+        function focusPending() {
+            if (!pendingFocus) return;
+            const inputs = container.querySelectorAll('.marks-input[data-part="' + pendingFocus + '"]');
+            const target = inputs[0];
+            pendingFocus = null;
+            if (target) { target.focus(); target.select(); }
+        }
+
+        container.addEventListener('keydown', (event) => {
+            const input = event.target;
+            if (!input.matches('.marks-input') || event.key !== 'Enter') return;
+            event.preventDefault();
+
+            const column = Array.from(container.querySelectorAll('.marks-input[data-part="' + input.dataset.part + '"]'));
+            const index = column.indexOf(input);
+            const next = column[index + (event.shiftKey ? -1 : 1)];
+
+            if (next) {
+                next.focus();
+                next.select();
+            } else if (!event.shiftKey && grid.currentPage < grid.totalPages) {
+                pendingFocus = input.dataset.part;
+                grid.loadTable(grid.currentPage + 1);
             }
         });
+
+        // ---- Saving ---------------------------------------------------------
+        const saveButton = ledger.querySelector('[data-save]');
+
+        if (saveButton) {
+            saveButton.addEventListener('click', () => {
+                const over = Object.keys(edits).find(id => {
+                    const a = num(edits[id].th) || 0, b = num(edits[id].pr) || 0;
+                    return a + b > fullMarks || a < 0 || b < 0;
+                });
+                if (over) {
+                    window.toast.error('A mark is over the subject\'s full marks (' + fullMarks + ').');
+                    const box = container.querySelector('.marks-input[data-student="' + over + '"]');
+                    if (box) box.focus();
+                    return;
+                }
+
+                const marks = {};
+                Object.keys(edits).forEach(id => {
+                    marks[id] = { th: edits[id].th ?? '', pr: edits[id].pr ?? '' };
+                });
+
+                saveButton.disabled = true;
+
+                TableHelper.ajax(ledger.dataset.saveUrl, {
+                    method: 'POST',
+                    useJQuery: false,
+                    showErrorAlert: false,
+                    data: Object.assign({}, filters, { marks }),
+                })
+                .then(response => {
+                    if (!response || response.success !== true) throw response;
+
+                    Object.keys(edits).forEach(id => { delete edits[id]; });
+                    enteredOnServer = null; // refreshed from the rows below
+                    window.toast.success(response.message);
+                    grid.refresh();
+                    refreshCount();
+                })
+                .catch(err => {
+                    saveButton.disabled = false;
+                    const body = (err && err.responseJSON) || err || {};
+                    const errors = body.errors ? Object.values(body.errors).flat() : null;
+                    window.toast.error(errors && errors.length ? errors[0] : body.message || 'The marks could not be saved.');
+                });
+            });
+        }
+
+        // The header count is the whole class, not the page, so it comes from
+        // the server after a save.
+        function refreshCount() {
+            fetch(ledger.dataset.rowsUrl + '&per_page=1&entered=1', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(r => { enteredOnServer = r.total || 0; progress(); });
+        }
+
+        // Typed marks that were never saved should not be lost to a stray click.
+        window.addEventListener('beforeunload', (event) => {
+            if (Object.keys(edits).length) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        });
+
+        progress();
     })();
 </script>
 @endpush

@@ -8,6 +8,7 @@ use App\Models\StudentMark;
 use App\Models\StudentReport;
 use App\Models\Subject;
 use App\Support\ReportGrader;
+use App\Support\TableResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -111,9 +112,9 @@ class MarksEntryController extends Controller
     }
 
     /**
-     * The rows to enter: students now in the class, plus any who have moved
-     * on but hold a report card for that class and year, so last year's
-     * ledger can still be completed.
+     * What the ledger card needs before the grid has fetched a row: the
+     * subject, the exam, how many students there are and how many have a
+     * mark, and the scale so the grade can be shown as a mark is typed.
      */
     private function ledger(array $filters): ?array
     {
@@ -123,34 +124,11 @@ class MarksEntryController extends Controller
             return null;
         }
 
-        $students = Student::where('school_id', $filters['school_id'])
-            ->where(function ($q) use ($filters) {
-                $q->where(fn ($now) => $now
-                    ->where('class', $filters['class'])
-                    ->where('section', $filters['section'])
-                    ->where('is_active', true))
-                ->orWhereHas('reports', fn ($then) => $then
-                    ->where('academic_year', $filters['academic_year'])
-                    ->where('class', $filters['class'])
-                    ->where('section', $filters['section']));
-            })
-            ->orderBy('roll_number')
-            ->orderBy('name')
-            ->get();
-
-        $marks = StudentMark::where('subject_id', $subject->id)
-            ->where('exam_type', $filters['exam_type'])
-            ->whereIn('student_id', $students->pluck('id'))
-            ->whereHas('report', fn ($q) => $q->where('academic_year', $filters['academic_year']))
-            ->get()
-            ->keyBy('student_id');
-
         return [
             'subject' => $subject,
             'exam' => self::EXAMS[$filters['exam_type']],
-            'students' => $students,
-            'marks' => $marks,
-            // The scale, so the page can show the grade as the mark is typed.
+            'students' => $this->ledgerStudents($filters)->count(),
+            'entered' => $this->ledgerStudents($filters)->whereNotNull('m.id')->count(),
             'bands' => GradeSystem::active()->ordered()->get()
                 ->map(fn ($band) => [
                     'from' => $band->marks_from,
@@ -159,6 +137,89 @@ class MarksEntryController extends Controller
                     'failing' => $band->is_failing,
                 ])->values(),
         ];
+    }
+
+    /**
+     * The rows to enter: students now in the class, plus any who have moved
+     * on but hold a report card for that class and year, so last year's
+     * ledger can still be completed. Each row carries its mark for this
+     * subject and exam, if there is one, from a left join on the card.
+     */
+    private function ledgerStudents(array $filters)
+    {
+        return Student::query()
+            ->leftJoin('student_reports as r', function ($join) use ($filters) {
+                $join->on('r.student_id', '=', 'students.id')
+                    ->where('r.academic_year', '=', $filters['academic_year']);
+            })
+            ->leftJoin('student_marks as m', function ($join) use ($filters) {
+                $join->on('m.student_report_id', '=', 'r.id')
+                    ->where('m.subject_id', '=', $filters['subject_id'])
+                    ->where('m.exam_type', '=', $filters['exam_type']);
+            })
+            ->where('students.school_id', $filters['school_id'])
+            ->where(function ($q) use ($filters) {
+                $q->where(fn ($now) => $now
+                    ->where('students.class', $filters['class'])
+                    ->where('students.section', $filters['section'])
+                    ->where('students.is_active', true))
+                ->orWhere(fn ($then) => $then
+                    ->where('r.class', $filters['class'])
+                    ->where('r.section', $filters['section']));
+            })
+            ->select('students.*')
+            ->addSelect([
+                'm.id as mark_id', 'm.theory_marks', 'm.practical_marks',
+                'm.total_marks', 'm.letter_grade', 'm.grade_point',
+            ]);
+    }
+
+    /**
+     * JSON rows for the grid on the ledger. The same filters as the page,
+     * plus whatever the grid sends to page, search and sort them.
+     */
+    public function rows(Request $request)
+    {
+        $filters = $this->filters($request, $this->selectableSchools()->pluck('id')->all());
+
+        if (! $filters['complete']) {
+            return response()->json(['success' => false, 'message' => 'Choose a school, class, section, year, subject and exam first.']);
+        }
+
+        // Only the filters the page validated; a bare id in the query string is
+        // not enough to see another school's class.
+        $this->authorizeSchool($filters['school_id']);
+
+        $current = fn ($student) => $student->class === $filters['class']
+            && $student->section === $filters['section']
+            && (bool) $student->is_active;
+
+        return TableResponse::make($request, $this->ledgerStudents($filters), [
+            'search' => ['students.name', 'students.roll_number'],
+            'filters' => [
+                'name' => 'students.name',
+                'roll_number' => 'students.roll_number',
+                // 'entered' / 'missing' - the rows still to do in a long class.
+                'entered' => fn ($q, $v) => $v === '1' ? $q->whereNotNull('m.id') : $q->whereNull('m.id'),
+            ],
+            'sort' => [
+                'roll_number' => 'students.roll_number',
+                'name' => 'students.name',
+            ],
+            'default' => ['students.roll_number', 'asc'],
+        ], fn ($student) => [
+            'id' => $student->id,
+            'roll_number' => $student->roll_number,
+            'name' => $student->name,
+            // Holds a card for this class and year but is not in it now.
+            'moved' => ! $current($student),
+            'now' => trim($student->class.' '.$student->section).($student->is_active ? '' : ', no longer enrolled'),
+            'th' => $student->theory_marks !== null ? $student->theory_marks + 0 : null,
+            'pr' => $student->practical_marks !== null ? $student->practical_marks + 0 : null,
+            'total' => $student->mark_id ? $student->total_marks + 0 : null,
+            'grade' => $student->mark_id ? $student->letter_grade : null,
+            'fail' => $student->mark_id ? (float) $student->grade_point <= 0 : false,
+        ]);
     }
 
     public function store(Request $request)
@@ -290,6 +351,18 @@ class MarksEntryController extends Controller
             $parts[] = $cleared === 1 ? '1 mark was cleared.' : "{$cleared} marks were cleared.";
         }
 
-        return redirect()->route('marks.index', $filters)->with('success', implode(' ', $parts));
+        $message = implode(' ', $parts);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'saved' => $saved,
+                'created' => $created,
+                'cleared' => $cleared,
+            ]);
+        }
+
+        return redirect()->route('marks.index', $filters)->with('success', $message);
     }
 }

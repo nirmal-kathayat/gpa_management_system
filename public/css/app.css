@@ -546,6 +546,11 @@ code {
     cursor: pointer;
 }
 
+.btn-primary-flat:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
 .btn-primary-flat:hover {
     background: var(--primary-hover);
     color: #fff;
@@ -1802,6 +1807,22 @@ input[type="file"].form-input::file-selector-button:hover {
 
 .ledger-foot .form-hint {
     margin: 0;
+}
+
+.ledger-unsaved {
+    margin-left: 8px;
+    font-weight: 600;
+    color: var(--warning);
+}
+
+/* Inside the grid the inputs sit in ordinary cells. */
+.ledger-grid .marks-input {
+    width: 96px;
+    margin: 0 auto;
+}
+
+.ledger-grid td {
+    vertical-align: middle;
 }
 
 .ledger-foot kbd {

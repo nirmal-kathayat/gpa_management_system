@@ -64,8 +64,65 @@ class MarksEntryTest extends TestCase
     {
         $this->actingAs($this->admin)->get(route('marks.index', $this->filters()))
             ->assertOk()
-            ->assertSeeInOrder(['Ram', 'Sita'])
-            ->assertSee('2 students');
+            ->assertSee('2 students')
+            ->assertSee('0 / 2 entered');
+
+        $rows = $this->actingAs($this->admin)->getJson(route('marks.rows', $this->filters()))
+            ->assertOk()
+            ->assertJsonPath('total', 2)
+            ->json('data');
+
+        $this->assertSame(['Ram', 'Sita'], array_column($rows, 'name'));
+        $this->assertNull($rows[0]['th']);
+        $this->assertNull($rows[0]['grade']);
+    }
+
+    public function test_the_rows_carry_the_mark_and_can_be_narrowed_to_the_missing_ones(): void
+    {
+        $this->actingAs($this->admin)->post(route('marks.store'), $this->filters() + [
+            'marks' => [$this->ram->id => ['th' => 62.5, 'pr' => 20]],
+        ]);
+
+        $rows = $this->actingAs($this->admin)->getJson(route('marks.rows', $this->filters()))->json('data');
+        $this->assertSame([62.5, 20, 82.5, 'A', false], [$rows[0]['th'], $rows[0]['pr'], $rows[0]['total'], $rows[0]['grade'], $rows[0]['fail']]);
+
+        $missing = $this->actingAs($this->admin)->getJson(route('marks.rows', $this->filters(['entered' => '0'])))->json('data');
+        $this->assertSame(['Sita'], array_column($missing, 'name'));
+
+        $this->actingAs($this->admin)->getJson(route('marks.rows', $this->filters(['search' => 'ram'])))
+            ->assertJsonPath('total', 1);
+    }
+
+    public function test_the_rows_need_the_whole_filter_and_the_users_own_school(): void
+    {
+        $this->actingAs($this->admin)->getJson(route('marks.rows', ['class' => '10']))
+            ->assertOk()
+            ->assertJsonPath('success', false);
+
+        $other = School::create(['name' => 'Other', 'address' => 'Pokhara']);
+        Role::findOrCreate('teacher-y', 'web')->givePermissionTo(['marks.viewAny']);
+        $teacher = User::create(['name' => 'T', 'username' => 't2', 'email' => 't2@b.c', 'password' => 'secret123', 'is_active' => true, 'school_id' => $other->id]);
+        $teacher->assignRole('teacher-y');
+
+        // Another school's id does not select: the ledger is the teacher's own
+        // school, which has nobody in class 10 A.
+        $this->actingAs($teacher)->getJson(route('marks.rows', $this->filters()))
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('total', 0);
+    }
+
+    public function test_saving_from_the_grid_answers_in_json(): void
+    {
+        $this->actingAs($this->admin)->postJson(route('marks.store'), $this->filters() + [
+            'marks' => [$this->ram->id => ['th' => 50, 'pr' => '']],
+        ])->assertOk()
+          ->assertJson(['success' => true, 'saved' => 1, 'created' => 1, 'cleared' => 0]);
+
+        $this->actingAs($this->admin)->postJson(route('marks.store'), $this->filters() + [
+            'marks' => [$this->ram->id => ['th' => 80, 'pr' => 30]],
+        ])->assertStatus(422)
+          ->assertJsonValidationErrors(['marks.'.$this->ram->id.'.th']);
     }
 
     public function test_saving_creates_a_report_card_for_each_student_and_grades_it(): void
@@ -172,13 +229,12 @@ class MarksEntryTest extends TestCase
         ]);
         $this->ram->update(['class' => '11']);
 
-        $this->actingAs($this->admin)->get(route('marks.index', $this->filters()))
-            ->assertOk()
-            ->assertSee('Ram')
-            ->assertSee('Moved');
+        $rows = $this->actingAs($this->admin)->getJson(route('marks.rows', $this->filters()))->json('data');
+        $this->assertSame('Ram', $rows[0]['name']);
+        $this->assertTrue($rows[0]['moved']);
+        $this->assertSame('11 A', $rows[0]['now']);
 
-        $this->actingAs($this->admin)->get(route('marks.index', $this->filters(['academic_year' => '2082'])))
-            ->assertOk()
-            ->assertDontSee('Ram');
+        $rows = $this->actingAs($this->admin)->getJson(route('marks.rows', $this->filters(['academic_year' => '2082'])))->json('data');
+        $this->assertNotContains('Ram', array_column($rows, 'name'));
     }
 }
