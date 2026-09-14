@@ -87,17 +87,7 @@ class SchoolController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        $imagePath = '';
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $destination = public_path('assets/school/');
-            if (!file_exists($destination)) {
-                mkdir($destination, 0777, true);
-            }
-            $imageName = time() . '_' . $file->getClientOriginalName();
-            $file->move($destination, $imageName);
-            $imagePath = 'assets/school/' . $imageName;
-        }
+        $imagePath = $this->storeImage($request, 'logo', 'school') ?? '';
 
         School::create([
             'name' => $validated['name'],
@@ -152,22 +142,8 @@ class SchoolController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        $imagePath = $school->logo; // keep old logo if not updating
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $destination = public_path('assets/school/');
-            if (!file_exists($destination)) {
-                mkdir($destination, 0777, true);
-            }
-            $imageName = time() . '_' . $file->getClientOriginalName();
-            $file->move($destination, $imageName);
-            $imagePath = 'assets/school/' . $imageName;
-
-            // Optionally delete the old logo
-            if ($school->logo && file_exists(public_path($school->logo))) {
-                unlink(public_path($school->logo));
-            }
-        }
+        // The old logo is kept unless a new one was uploaded, and removed when it was.
+        $imagePath = $this->storeImage($request, 'logo', 'school', $school->logo);
 
         $school->update([
             'name' => $validated['name'],

@@ -95,7 +95,8 @@
 
     <div class="sheet-title">
         <span class="sheet-title-main">Mark Sheet</span>
-        <span class="sheet-title-sub">Final Examination &nbsp;·&nbsp; {{ $report->academic_year }}</span>
+        {{-- Every terminal is on the sheet, so it is the year's result, not one exam's. --}}
+        <span class="sheet-title-sub">Annual Result &nbsp;·&nbsp; Academic Year {{ $report->academic_year }}</span>
     </div>
 
     <table class="sheet-identity">

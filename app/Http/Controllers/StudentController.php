@@ -9,28 +9,6 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     /**
-     * Moves an uploaded photo into public/assets/student and returns its path,
-     * or null when the form did not carry one. Mirrors the school logo.
-     */
-    private function storePhoto(Request $request): ?string
-    {
-        if (! $request->hasFile('photo')) {
-            return null;
-        }
-
-        $destination = public_path('assets/student/');
-        if (! file_exists($destination)) {
-            mkdir($destination, 0777, true);
-        }
-
-        $file = $request->file('photo');
-        $name = time().'_'.$file->getClientOriginalName();
-        $file->move($destination, $name);
-
-        return 'assets/student/'.$name;
-    }
-
-    /**
      * Students for the Select2 picker on the report form: searched and paged on
      * the server, so a school with thousands of students never ships them all to
      * the browser.
@@ -161,7 +139,7 @@ class StudentController extends Controller
         $this->authorizeSchool((int) $validated['school_id']);
 
         $validated['is_active'] = $request->boolean('is_active');
-        $validated['photo'] = $this->storePhoto($request) ?? null;
+        $validated['photo'] = $this->storeImage($request, 'photo', 'student');
 
         Student::create($validated);
 
@@ -213,7 +191,7 @@ class StudentController extends Controller
         $this->authorizeSchool((int) $validated['school_id']);
 
         $validated['is_active'] = $request->boolean('is_active');
-        $validated['photo'] = $this->storePhoto($request) ?? $student->photo;
+        $validated['photo'] = $this->storeImage($request, 'photo', 'student', $student->photo);
 
         $student->update($validated);
 

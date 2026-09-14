@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\School;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
@@ -24,6 +25,37 @@ class Controller extends BaseController
             403,
             'You do not have access to this school\'s records.'
         );
+    }
+
+    /**
+     * Moves an uploaded image into public/assets/{$folder} and returns the path
+     * to store, or the current path when the form did not carry a new file.
+     *
+     * The file is saved under a random name rather than the one it was
+     * uploaded with, so a user's filename never reaches the filesystem, two
+     * uploads cannot collide, and the URL gives nothing away. A replaced
+     * image is removed so the folder does not fill with orphans.
+     */
+    protected function storeImage(Request $request, string $field, string $folder, ?string $current = null): ?string
+    {
+        if (! $request->hasFile($field)) {
+            return $current;
+        }
+
+        $destination = public_path('assets/'.$folder);
+        if (! is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        $file = $request->file($field);
+        $name = $file->hashName();
+        $file->move($destination, $name);
+
+        if ($current && is_file(public_path($current))) {
+            unlink(public_path($current));
+        }
+
+        return 'assets/'.$folder.'/'.$name;
     }
 
     /**
